@@ -9,15 +9,15 @@ import { LoggerService } from '../loggger/logger.service';
 import { Identification } from 'src/core/domain/identification.entity';
 
 @Injectable()
-export class UserService {
+export class IdentificationService {
   constructor(
     private prisma: PrismaService,
     private logger: LoggerService,
   ) {}
 
 
-  async findAll(): Promise<Identification[]> {
-    const identifiction = await this.prisma.identificationTypes.findMany()
+  async findAll(): Promise<Pick<Identification, 'name' |'id_type_identification'>[]> {
+    const identifiction = await this.prisma.type_identification.findMany()
     this.logger.log(JSON.stringify(identifiction))
     return identifiction;
   }

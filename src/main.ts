@@ -24,7 +24,8 @@ async function bootstrap() {
   //Configurar el swaggwer
   const config = new DocumentBuilder()
     .setTitle('IdentificationType')
-    .setDescription(`Service that manages identification types such as ID card or passport for different roles`)
+    .setDescription(`Service that manages identification types such as
+      d or passport for different roles`)
     .setVersion('1.0.0')
     .build();
   app.useGlobalFilters(
