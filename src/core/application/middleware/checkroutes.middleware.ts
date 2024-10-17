@@ -3,6 +3,7 @@ import {
   NestMiddleware,
   HttpException,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { match } from 'path-to-regexp';
@@ -14,20 +15,32 @@ export class PathMethodMiddleware implements NestMiddleware {
     const method = req.method.toLowerCase(); // Obtener el método HTTP (get, post, etc.)
     const path = req.baseUrl; // Obtener el path solicitado
 
-    // Verificar si el método existe en la configuración
+    // Verificar si la ruta existe en cualquier método
+    const isRouteDefined = Object.values(enablePathMethods).some(
+      (allowedPaths) =>
+        allowedPaths.some((allowedPath) => {
+          const matcher = match(allowedPath, { decode: decodeURIComponent });
+          return matcher(path); // Verifica si la ruta coincide con cualquier ruta definida
+        }),
+    );
+    if (!isRouteDefined) {
+      // Si la ruta no está definida para ningún método, devolvemos un 404
+      throw new BadRequestException(`Route ${path} not found`);
+    }
+
+    // Si la ruta está definida, verificamos si el método está permitido
     if (enablePathMethods[method]) {
-      // Recorrer las rutas permitidas para el método
-      const isRouteAllowed = enablePathMethods[method].some((allowedPath) => {
+      const isMethodAllowed = enablePathMethods[method].some((allowedPath) => {
         const matcher = match(allowedPath, { decode: decodeURIComponent });
-        return matcher(path); // Verifica si la ruta solicitada coincide con alguna ruta permitida
+        return matcher(path); // Verifica si la ruta es válida para el método actual
       });
 
-      if (isRouteAllowed) {
-        return next(); // Continuamos si está permitido
+      if (isMethodAllowed) {
+        return next(); // Si el método está permitido para la ruta, continuamos
       }
     }
 
-    // Si la ruta o el método no están permitidos, lanzamos una excepción
+    // Si la ruta existe pero el método no está permitido, lanzamos una excepción 405
     throw new HttpException(
       `Method ${req.method} is not allowed for the path: ${path}`,
       HttpStatus.METHOD_NOT_ALLOWED,

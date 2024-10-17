@@ -37,7 +37,6 @@ export class UserController {
   @Get('1.0/:id')
   async getOneUser(@Param('id') id: string): Promise<User> {
     if (!Validator.isValidUUID(id)) {
-      console.log('Si si pase');
       throw new BadRequestException('The "id" parameter must be a valid UUID.');
     }
     return this.userService.findOne(id);

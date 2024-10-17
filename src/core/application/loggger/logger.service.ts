@@ -102,7 +102,6 @@ export class LoggerService {
   async debug(message: string) {
     const levelLogger = process.env.LOG_LEVEL ?? 'debug';
     if (levelLogger === 'debug') {
-      console.log('Si entre');
       this.loggerDebug.debug(message);
     }
     this.loggerAll.debug(message);
