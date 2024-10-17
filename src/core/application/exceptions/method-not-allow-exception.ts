@@ -21,8 +21,17 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
-    console.log(path);
-
+    let customMessage =
+      exception.message ||
+      `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
+    console.log(request.body);
+    if (request.body) {
+      customMessage = 'Structure error';
+    }
+    console.log(Object.keys(request.body).length);
+    if (Object.keys(request.body).length === 0) {
+      customMessage = 'Structure error';
+    }
     // Verificar si la ruta está definida en enablePathMethods para el método actual
     const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
 
@@ -42,7 +51,13 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     }
 
     // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
-    const errorLogs = this.createErrorLog(exception, status, httpMethod, path);
+    const errorLogs = this.createErrorLog(
+      exception,
+      status,
+      httpMethod,
+      path,
+      customMessage,
+    );
     this.logger.error(JSON.stringify(errorLogs));
     return response.status(status).json(errorLogs);
   }
@@ -64,7 +79,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       allowedPaths.some((allowedPath) => {
         const matcher = match(allowedPath, { decode: decodeURIComponent });
         return matcher(path);
-      })
+      }),
     );
   }
 
@@ -94,12 +109,11 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     status: number,
     httpMethod: string,
     path: string,
+    message: string,
   ) {
-    const customMessage =
-      exception.message || `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
     return {
       code: status,
-      message: customMessage,
+      message: message,
       timestamp: new Date().toISOString(),
       path,
       method: httpMethod.toUpperCase(),

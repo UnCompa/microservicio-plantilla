@@ -20,6 +20,23 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const httpMethod = request.method;
+    console.log(request.body);
+    // Verificar si es un error de JSON mal formado
+    const isJsonError = this.isJsonSyntaxError(exception);
+
+    // Si es un error de JSON mal formado
+    if (isJsonError) {
+      const jsonErrorResponse = this.createJsonErrorResponse(
+        exception,
+        status,
+        request,
+      );
+      // Log de error para JSON inválido
+      this.logger.error(JSON.stringify(jsonErrorResponse));
+
+      // Responder con el error de JSON inválido
+      return response.status(status).json(jsonErrorResponse);
+    }
 
     // Extraer errores de validación
     const validationErrors = this.extractValidationErrors(exception);
@@ -37,11 +54,35 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
       validationErrors,
     );
 
-    // Log de error
+    // Log de error para validaciones
     this.logger.error(JSON.stringify(errorLogs));
 
     // Responder al cliente con la estructura nueva
     response.status(status).json(errorLogs);
+  }
+
+  // Verificar si el error es causado por JSON inválido
+  private isJsonSyntaxError(exception: BadRequestException) {
+    const exceptionResponse: any = exception.getResponse();
+    return (
+      typeof exceptionResponse === 'string' &&
+      exceptionResponse.includes('Unexpected token')
+    );
+  }
+
+  // Crear una respuesta para errores de JSON mal formado
+  private createJsonErrorResponse(
+    exception: BadRequestException,
+    status: number,
+    request: Request,
+  ) {
+    return {
+      code: status,
+      message: 'Invalid JSON structure',
+      timestamp: new Date().toISOString(),
+      path: request.url,
+      method: request.method,
+    };
   }
 
   // Extraer y agrupar los errores de validación
