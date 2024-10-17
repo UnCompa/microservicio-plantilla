@@ -4,11 +4,13 @@ import {
   HttpException,
   ArgumentsHost,
   HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { match } from 'path-to-regexp';
 import { enablePathMethods } from 'src/utils/api/apiEnableMethods';
 import { LoggerService } from '../loggger/logger.service';
+import { ValidationError } from 'class-validator';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
@@ -24,7 +26,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
-    if (request.body || request.body == undefined || request.body == '') {
+    if (request.body == undefined) {
       customMessage = 'Structure error';
     }
     if (Object.keys(request.body).length === 0) {
@@ -32,7 +34,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     }
     // Verificar si la ruta está definida en enablePathMethods para el método actual
     const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
-
+    const validationErrors = this.extractValidationErrors(exception);
     if (!isMethodAllowed) {
       // Verificar si la ruta existe para cualquier método
       const isRouteDefined = this.isRouteDefined(path);
@@ -53,6 +55,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       httpMethod,
       path,
       customMessage,
+      validationErrors,
     );
     this.logger.error(JSON.stringify(errorLogs));
     return response.status(status).json(errorLogs);
@@ -86,6 +89,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       message: `Route ${path} not found`,
       timestamp: new Date().toISOString(),
     };
+    this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.NOT_FOUND).json(errorResponse);
   }
 
@@ -96,6 +100,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       message: `Method not allowed for path: ${path}`,
       timestamp: new Date().toISOString(),
     };
+    this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
   }
 
@@ -106,13 +111,54 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     httpMethod: string,
     path: string,
     message: string,
+    groupedErrors: Record<string, string[]>,
   ) {
-    return {
-      code: status,
-      message: message,
-      timestamp: new Date().toISOString(),
-      path,
-      method: httpMethod.toUpperCase(),
-    };
+    let errors;
+    if (groupedErrors) {
+      errors = {
+        code: status,
+        message: message,
+        timestamp: new Date().toISOString(),
+        path,
+        method: httpMethod.toUpperCase(),
+        groupedErrors: groupedErrors,
+      };
+    } else {
+      errors = {
+        code: status,
+        message: message,
+        timestamp: new Date().toISOString(),
+        path,
+        method: httpMethod.toUpperCase(),
+      };
+    }
+    return errors;
+  }
+  private extractValidationErrors(exception: BadRequestException) {
+    const exceptionResponse: any = exception.getResponse();
+    const validationErrors = exceptionResponse.message;
+    let groupedErrors: Record<string, string[]> = {};
+
+    if (Array.isArray(validationErrors)) {
+      groupedErrors = validationErrors.reduce(
+        (acc: Record<string, string[]>, error: ValidationError | string) => {
+          if (typeof error === 'string') {
+            acc.general = acc.general || [];
+            acc.general.push(error);
+          } else {
+            const field = error.property;
+            const messages = Object.values(error.constraints);
+            acc[field] = acc[field] || [];
+            acc[field].push(...messages);
+          }
+          return acc;
+        },
+        {},
+      );
+    } else if (typeof validationErrors === 'string') {
+      groupedErrors.general = [validationErrors];
+    }
+
+    return groupedErrors;
   }
 }

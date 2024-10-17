@@ -22,7 +22,6 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const httpMethod = request.method;
     // Verificar si es un error de JSON mal formado
     const isJsonError = this.isJsonSyntaxError(exception);
-
     // Si es un error de JSON mal formado
     if (isJsonError) {
       const jsonErrorResponse = this.createJsonErrorResponse(
