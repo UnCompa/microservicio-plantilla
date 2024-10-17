@@ -1,1 +1,1 @@
-export const apiBaseEntityName: string = 'users';
+export const apiBaseEntityName: string = "IdentificationType"
