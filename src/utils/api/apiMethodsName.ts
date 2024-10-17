@@ -1,4 +1,4 @@
-import { apiBaseEntityName } from './apiBaseEntity';
+import { apiBaseEntityName, apiBaseEntityName2 } from './apiBaseEntities';
 
 export const apiMethodsName = {
   get: `Retrieves ${apiBaseEntityName}`,
@@ -7,4 +7,8 @@ export const apiMethodsName = {
   delete: `Remove ${apiBaseEntityName}`,
   service: `${apiBaseEntityName}`,
   '000': `Exito ${apiBaseEntityName}`,
+};
+export const apiMethodsName2 = {
+  get: `Retrieves ${apiBaseEntityName2}`,
+  post: `Save ${apiBaseEntityName2}`,
 };

@@ -1,5 +1,5 @@
 import { ErrorDto } from 'src/core/application/dtos/error.dto';
-import { apiBaseEntityName } from './apiBaseEntity';
+import { apiBaseEntityName } from '../apiBaseEntities';
 import { apiMethodsName } from './apiMethodsName';
 import { ResponseDto } from 'src/core/application/dtos/response.dto';
 

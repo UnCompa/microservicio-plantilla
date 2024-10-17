@@ -8,7 +8,7 @@ import { ValidationError } from 'class-validator';
 import { Response, Request } from 'express';
 import { LoggerService } from '../loggger/logger.service';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig'; // Asegúrate de que la ruta sea correcta
-import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { apiMethodsName } from 'src/utils/api/apiMethodsName'; //';
 
 @Catch(BadRequestException)
 export class BadRequestExceptionFilter implements ExceptionFilter {

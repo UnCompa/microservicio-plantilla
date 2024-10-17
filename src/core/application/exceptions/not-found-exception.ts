@@ -9,7 +9,7 @@ import { Request, Response } from 'express';
 import { LoggerService } from '../loggger/logger.service'; // Asegúrate de que la ruta sea correcta
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { Validator } from 'src/utils/api/apiValidations';
-import { apiBaseEntityName } from 'src/utils/api/apiBaseEntity';
+import { apiBaseEntityName } from 'src/utils/api/apiBaseEntities';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 
 @Catch(NotFoundException) // Este decorador indica que este filtro manejará excepciones de tipo NotFoundException
