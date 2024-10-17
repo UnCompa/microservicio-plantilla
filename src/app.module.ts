@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module } from '@nestjs/common';
 import { UserModule } from './core/infrastructure/adaptarts/modules/user.module';
+import { PathMethodMiddleware } from './core/application/middleware/checkroutes.middleware';
 //import { ConfigModule } from '@nestjs/config';
 //import { ConfigModule } from '@nestjs/config';
 
@@ -14,4 +15,8 @@ import { UserModule } from './core/infrastructure/adaptarts/modules/user.module'
   controllers: [],
   providers: [],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(PathMethodMiddleware).forRoutes('*');
+  }
+}

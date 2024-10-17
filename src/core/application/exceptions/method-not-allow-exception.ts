@@ -3,12 +3,13 @@ import {
   Catch,
   HttpException,
   ArgumentsHost,
+  HttpStatus,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { LoggerService } from '../loggger/logger.service';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { ValidationError } from 'class-validator';
-import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { apiMethods, apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { LoggerService } from '../loggger/logger.service';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
@@ -18,13 +19,50 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const httpMethod = request.method;
     const status = exception.getStatus();
-    let groupedErrors: Record<string, string[]> = {};
+    const validationErrors = this.extractValidationErrors(exception);
+    // Obtener configuración de la ruta
+    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    console.log(routeConfig);
+    const entity = routeConfig?.entity ?? this.getEntityFromMethod(httpMethod);
+    console.log(entity);
+    // Si no hay configuración de ruta, verifica si el método es permitido
+    if (!routeConfig) {
+      return this.handleMethodNotAllowed(response, entity);
+    }
+
+    const errorLogs = this.createErrorLog(
+      exception,
+      status,
+      httpMethod,
+      entity,
+      validationErrors,
+    );
+
+    // Log de error
+    this.logger.error(JSON.stringify(errorLogs));
+
+    // Responder al cliente con la estructura nueva
+    response.status(status).json(errorLogs);
+  }
+
+  private handleMethodNotAllowed(response: Response, entity: string) {
+    const errorResponse = {
+      code: HttpStatus.METHOD_NOT_ALLOWED,
+      message: apiExceptionConfig.methodNotAllowed.message,
+      timestamp: new Date().toISOString(),
+      service: entity,
+    };
+
+    response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
+  }
+
+  private extractValidationErrors(exception: HttpException) {
     const exceptionResponse: any = exception.getResponse();
     const validationErrors = exceptionResponse.message;
-    console.log(validationErrors);
+    let groupedErrors: Record<string, string[]> = {};
 
-    // Agrupar errores de validación
     if (Array.isArray(validationErrors)) {
       groupedErrors = validationErrors.reduce(
         (acc: Record<string, string[]>, error: ValidationError | string) => {
@@ -45,40 +83,47 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       groupedErrors.general = [validationErrors];
     }
 
-    if (status === 405 || status === 409) {
-      const customMessage =
-        exception.message || apiExceptionConfig.methodNotAllowed.message; // Mensaje personalizado
-      const httpMethod = request.method; // Obtener el método HTTP
-      const serviceName =
-        apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName]; // Obtener el nombre del servicio
-      const errorLogs = {
-        code: exception.name, // Código del error configurable
-        message: customMessage, // Mensaje personalizado
-        timestamp: new Date().toISOString(), // Timestamp actual
-        service: serviceName, // Incluir el nombre del servicio
-      };
+    return groupedErrors;
+  }
 
-      // Log de error
-      this.logger.error(JSON.stringify(errorLogs));
+  private getRouteConfig(httpMethod: string, url: string) {
+    return apiExceptionConfig.methodNotAllowed.routes.find((route) => {
+      console.log(route);
+      return route.method === httpMethod && url.startsWith(route.path);
+    });
+  }
 
-      // Responder al cliente con la estructura nueva
-      response.status(status).json(errorLogs);
-    } else {
-      // Manejo para otros tipos de excepciones
-      const errorLogs = {
-        code: apiExceptionConfig.methodNotAllowed.code, // Puedes ajustar esto según tu configuración
-        message: exception.message,
+  private getEntityFromMethod(httpMethod: string) {
+    return apiMethodsName[
+      httpMethod.toLowerCase() as keyof typeof apiMethodsName
+    ];
+  }
+
+  private createErrorLog(
+    exception: HttpException,
+    status: number,
+    httpMethod: string,
+    entity: string,
+    groupedErrors: Record<string, string[]>,
+  ) {
+    const customMessage =
+      exception.message || apiExceptionConfig.methodNotAllowed.message;
+    console.log(groupedErrors);
+    if (groupedErrors) {
+      return {
+        code: status === 405 || status === 409 ? status : status,
+        message: customMessage,
         timestamp: new Date().toISOString(),
-        service:
-          apiMethodsName[
-            request.method.toLowerCase() as keyof typeof apiMethodsName
-          ],
-        errors: groupedErrors, // Incluyendo errores agrupados en el log
+        service: apiMethods(httpMethod, entity),
+        errors: groupedErrors, // Incluir errores agrupados en el log
       };
-
-      this.logger.error(JSON.stringify(errorLogs));
-
-      response.status(status).json(errorLogs);
     }
+
+    return {
+      code: status === 405 || status === 409 ? status : status,
+      message: customMessage,
+      timestamp: new Date().toISOString(),
+      service: apiMethods(httpMethod, entity),
+    };
   }
 }
