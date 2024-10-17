@@ -24,11 +24,9 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
-    console.log(request.body);
-    if (request.body) {
+    if (request.body || request.body == undefined || request.body == '') {
       customMessage = 'Structure error';
     }
-    console.log(Object.keys(request.body).length);
     if (Object.keys(request.body).length === 0) {
       customMessage = 'Structure error';
     }
@@ -40,8 +38,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       const isRouteDefined = this.isRouteDefined(path);
 
       if (!isRouteDefined) {
-        console.log(path);
-
         // Si la ruta no está definida en ningún método, devolver un 404
         return this.handleNotFound(response, path);
       }

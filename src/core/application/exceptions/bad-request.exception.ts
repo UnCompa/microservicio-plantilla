@@ -20,7 +20,6 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const httpMethod = request.method;
-    console.log(request.body);
     // Verificar si es un error de JSON mal formado
     const isJsonError = this.isJsonSyntaxError(exception);
 
