@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { KafkaLogger } from 'kafka-logger-mm'; // Librería de Kafka
 import { LoggerService } from './logger.service';
+import { messageCustom } from 'src/utils/api/apiKafkaLogConfig';
 
 @Injectable()
 export class LoggerKafkaService extends LoggerService {
@@ -12,17 +13,21 @@ export class LoggerKafkaService extends LoggerService {
       '192.168.68.127:9092',
     ];
     const topic = process.env.KAFKA_TOPIC || 'logs_topic';
-    this.kafkaLogger = new KafkaLogger(brokers, topic);
+    const clientId = process.env.KAFKA_TOPIC || 'logger-service';
+    this.kafkaLogger = new KafkaLogger(brokers, topic, clientId);
     this.kafkaLogger.connect();
   }
 
-  async log(message: string) {
+  async log(message: string, method?: string) {
     console.log('mensaje' + message);
     await super.log(message); // Llama al método log de la clase base (Winston)
     await this.kafkaLogger.logMessage(
       'info',
       this.messageFormat(message, 'INFO'),
     ); // Log en Kafka
+    const mensaje = messageCustom(message, method);
+    console.log(mensaje);
+    await this.kafkaLogger.logCustomMessage('level', mensaje);
   }
 
   async error(message: string) {

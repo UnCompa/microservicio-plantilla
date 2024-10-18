@@ -12,6 +12,8 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(BadRequestException)
 export class BadRequestExceptionFilter implements ExceptionFilter {
+  private readonly INVALID_JSON_MESSAGE = 'Invalid JSON structure';
+
   constructor(private readonly logger: LoggerService) {}
 
   catch(exception: BadRequestException, host: ArgumentsHost) {
@@ -20,30 +22,57 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const httpMethod = request.method;
+
     // Verificar si es un error de JSON mal formado
     const isJsonError = this.isJsonSyntaxError(exception);
-    // Si es un error de JSON mal formado
+
+    // Manejo de los errores
     if (isJsonError) {
-      const jsonErrorResponse = this.createJsonErrorResponse(
+      this.handleJsonError(exception, response, status, request);
+    } else {
+      this.handleValidationError(
         exception,
+        response,
         status,
         request,
+        httpMethod,
       );
-      // Log de error para JSON inválido
-      this.logger.error(JSON.stringify(jsonErrorResponse));
-
-      // Responder con el error de JSON inválido
-      return response.status(status).json(jsonErrorResponse);
     }
+  }
 
-    // Extraer errores de validación
+  private isJsonSyntaxError(exception: BadRequestException): boolean {
+    const exceptionResponse: string | object = exception.getResponse();
+    return (
+      typeof exceptionResponse === 'string' &&
+      exceptionResponse.includes('Unexpected token')
+    );
+  }
+
+  private handleJsonError(
+    exception: BadRequestException,
+    response: Response,
+    status: number,
+    request: Request,
+  ) {
+    const jsonErrorResponse = this.createJsonErrorResponse(
+      exception,
+      status,
+      request,
+    );
+    this.logger.error('Invalid JSON' + JSON.stringify(jsonErrorResponse));
+    response.status(status).json(jsonErrorResponse);
+  }
+
+  private handleValidationError(
+    exception: BadRequestException,
+    response: Response,
+    status: number,
+    request: Request,
+    httpMethod: string,
+  ) {
     const validationErrors = this.extractValidationErrors(exception);
-
-    // Obtener la configuración de la ruta o usar la entidad predeterminada
     const routeConfig = this.getRouteConfig(httpMethod, request.url);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
-
-    // Crear los logs de error
     const errorLogs = this.createErrorLog(
       exception,
       status,
@@ -51,24 +80,10 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
       entity,
       validationErrors,
     );
-
-    // Log de error para validaciones
-    this.logger.error(JSON.stringify(errorLogs));
-
-    // Responder al cliente con la estructura nueva
+    this.logger.error('Validation Error' + JSON.stringify(errorLogs));
     response.status(status).json(errorLogs);
   }
 
-  // Verificar si el error es causado por JSON inválido
-  private isJsonSyntaxError(exception: BadRequestException) {
-    const exceptionResponse: any = exception.getResponse();
-    return (
-      typeof exceptionResponse === 'string' &&
-      exceptionResponse.includes('Unexpected token')
-    );
-  }
-
-  // Crear una respuesta para errores de JSON mal formado
   private createJsonErrorResponse(
     exception: BadRequestException,
     status: number,
@@ -76,14 +91,13 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
   ) {
     return {
       code: status,
-      message: 'Invalid JSON structure',
+      message: this.INVALID_JSON_MESSAGE,
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
     };
   }
 
-  // Extraer y agrupar los errores de validación
   private extractValidationErrors(exception: BadRequestException) {
     const exceptionResponse: any = exception.getResponse();
     const validationErrors = exceptionResponse.message;
@@ -112,12 +126,11 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     return groupedErrors;
   }
 
-  // Obtener la configuración de la ruta con una opción por defecto si no se encuentra coincidencia
   private getRouteConfig(httpMethod: string, url: string) {
     const defaultRouteConfig = {
-      entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
-      method: httpMethod, // Usa el método HTTP actual
-      path: url, // Ruta genérica
+      entity: this.getEntityFromMethod(httpMethod),
+      method: httpMethod,
+      path: url,
     };
 
     return (
@@ -127,14 +140,12 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     );
   }
 
-  // Obtener la entidad basada en el método HTTP
   private getEntityFromMethod(httpMethod: string) {
     return apiMethodsName[
       httpMethod.toLowerCase() as keyof typeof apiMethodsName
     ];
   }
 
-  // Crear los logs de error
   private createErrorLog(
     exception: BadRequestException,
     status: number,
@@ -147,7 +158,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
       message: apiExceptionConfig.badRequest.message,
       timestamp: new Date().toISOString(),
       service: apiMethods(httpMethod, entity),
-      errors: groupedErrors, // Incluir errores agrupados en el log
+      validationErrors: groupedErrors,
     };
   }
 }
