@@ -19,15 +19,11 @@ export class LoggerKafkaService extends LoggerService {
   }
 
   async log(message: string, method?: string) {
-    console.log('mensaje' + message);
     await super.log(message); // Llama al método log de la clase base (Winston)
     await this.kafkaLogger.logMessage(
       'info',
       this.messageFormat(message, 'INFO'),
     ); // Log en Kafka
-    const mensaje = messageCustom(message, method);
-    console.log(mensaje);
-    await this.kafkaLogger.logCustomMessage('level', mensaje);
   }
 
   async error(message: string) {

@@ -12,8 +12,8 @@ import {
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/core/application/dtos/create-user.dto';
-import { SendData } from 'src/core/application/dtos/sendData-user.dto';
-import { UpdateUserDto } from 'src/core/application/dtos/update-user.dto';
+import { SendData } from 'src/core/application/dtos/sendDataUser.dto';
+import { UpdateUserDto } from 'src/core/application/dtos/updateUser.dto';
 import { UserService } from 'src/core/application/services/user.service';
 import { User } from 'src/core/domain/user.entity';
 import { apiStatus, createEntity } from 'src/utils/api/apiStatus';

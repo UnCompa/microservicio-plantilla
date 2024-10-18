@@ -4,13 +4,13 @@ import { LoggerService } from './core/application/loggger/logger.service';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { appConfig } from './utils/config/app.config';
-import { BadRequestExceptionFilter } from './core/application/exceptions/bad-request.exception';
-import { MethodNotAllowedFilter } from './core/application/exceptions/method-not-allow-exception';
-import { NotFoundExceptionFilter } from './core/application/exceptions/not-found-exception';
+import { BadRequestExceptionFilter } from './core/application/exceptions/badRequest.exception';
+import { MethodNotAllowedFilter } from './core/application/exceptions/methodNotAllow-exception';
+import { NotFoundExceptionFilter } from './core/application/exceptions/notFound-exception';
 import { ConflictExceptionFilter } from './core/application/exceptions/conflict.exception';
 import { ForbiddenExceptionFilter } from './core/application/exceptions/forbidden.exception';
-import { InternalServerErrorExceptionFilter } from './core/application/exceptions/internal-server-error.exception';
-import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/service-unavailable.exception';
+import { InternalServerErrorExceptionFilter } from './core/application/exceptions/internalServerError.exception';
+import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/serviceUnavailable.exception';
 import { UnauthorizedExceptionFilter } from './core/application/exceptions/unauthorized.exception';
 import { LoggerKafkaService } from './core/application/loggger/loggerKafka.service';
 

@@ -5,10 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
-import { UpdateUserDto } from '../dtos/update-user.dto';
+import { UpdateUserDto } from '../dtos/updateUser.dto';
 import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from 'src/core/domain/user.entity';
-import { SendData } from '../dtos/sendData-user.dto';
+import { SendData } from '../dtos/sendDataUser.dto';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { LoggerService } from '../loggger/logger.service';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';

@@ -59,7 +59,7 @@ export class ServiceUnavailableExceptionFilter implements ExceptionFilter {
   private getServiceName(httpMethod: string): string {
     const method = httpMethod.toLowerCase(); // Convierte el método a minúsculas
     return (
-      apiMethodsName[method as keyof typeof apiMethodsName] || 'unknown_service'
+      apiMethodsName[method as keyof typeof apiMethodsName] || 'unknownService'
     );
   }
 }

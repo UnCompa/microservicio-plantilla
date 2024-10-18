@@ -108,34 +108,6 @@ $ pnpm run build
 $ pnpm run start:prod
 ```
 
-## Ejecutar Tests
-
-### Con NPM
-
-```bash
-# Tests unitarios
-$ npm run test
-
-# Tests end-to-end
-$ npm run test:e2e
-
-# Cobertura de tests
-$ npm run test:cov
-```
-
-### Con PNPM
-
-```bash
-# Tests unitarios
-$ pnpm run test
-
-# Tests end-to-end
-$ pnpm run test:e2e
-
-# Cobertura de tests
-$ pnpm run test:cov
-```
-
 ## Uso de Docker 💿
 
 La plantilla incluye un Dockerfile que permite crear una imagen de tu proyecto:

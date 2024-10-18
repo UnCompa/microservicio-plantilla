@@ -1,21 +1,16 @@
-# Usa una imagen base ligera de Node.js
 FROM node:18-alpine AS base
 
 WORKDIR /app
 
 COPY package*.json ./
 
-RUN npm install --production
-
 COPY . .
 
-RUN npx prisma generate
-
-RUN npx prisma migrate deploy
-
-RUN npm install @nestjs/cli
-
-RUN npm run build
+RUN npm i --production && \
+  npx prisma generate && \
+  npx prisma migrate deploy && \
+  npm install @nestjs/cli && \
+  npm run build
 
 FROM node:18-alpine AS production
 
@@ -26,10 +21,8 @@ COPY --from=base /app/dist ./dist
 COPY --from=base /app/prisma ./prisma
 
 ENV NODE_ENV=production
-
 ENV LOG_LEVEL=error
 
 EXPOSE 3000
 
-# Ejecuta las migraciones y luego la aplicación
-CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]
+CMD ["node", "dist/main"]
