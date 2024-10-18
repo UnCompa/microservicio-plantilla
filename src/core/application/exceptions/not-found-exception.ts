@@ -6,66 +6,63 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { LoggerService } from '../loggger/logger.service'; // Asegúrate de que la ruta sea correcta
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { Validator } from 'src/utils/api/apiValidations';
-import { apiBaseEntityName } from 'src/utils/api/apiBaseEntities';
+import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { LoggerService } from '../loggger/logger.service';
 
-@Catch(NotFoundException) // Este decorador indica que este filtro manejará excepciones de tipo NotFoundException
+@Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) {} // Inyección del servicio de logger
+  constructor(private logger: LoggerService) {}
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
-    const status = exception.getStatus();
+    const httpMethod = request.method;
     const exceptionResponse: any = exception.getResponse();
-    const httpMethod = request.method; // Obtener el método HTTP
     let customMessage = exceptionResponse.message;
 
+    // Verificar si la excepción incluye un mensaje específico
     if (exception.message.includes('Cannot')) {
       customMessage = `The route '${request.url}' was not found. Please ensure that the URL is correct and that the resource exists. (Entity: ${apiBaseEntityName}, Method: ${httpMethod})`;
     }
 
-    // Lógica para manejar las validaciones de rutas
-    const routeConfig = apiExceptionConfig.notFound.routes.find(
-      (route) =>
-        route.method === httpMethod && request.url.startsWith(route.path), // Cambiado a startsWith
-    );
+    // Obtener la configuración de la ruta
+    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
 
-    // Validar que la ID en la URL sea un número entero
+    // Validar que la ID en la URL sea un UUID válido
     const idParam = request.params['id'];
     if (idParam && !Validator.isValidUUID(idParam)) {
       response.status(HttpStatus.BAD_REQUEST).json({
-        code: apiExceptionConfig.badRequest.code, // Tipo de error
-        message: `The parameter "id" must be a valid UUID. Provided: "${idParam}"`, // Mensaje indicando el parámetro faltante
+        code: apiExceptionConfig.badRequest.code,
+        message: `The parameter "id" must be a valid UUID. Provided: "${idParam}"`,
         timestamp: new Date().toISOString(),
         service:
           apiMethodsName[
             httpMethod.toLowerCase() as keyof typeof apiMethodsName
-          ], // Código HTTP
+          ],
       });
       return;
     }
 
-    // Respuesta para el caso de Not Found con la ruta encontrada
+    // Validar parámetros requeridos para la ruta
     if (routeConfig) {
       const validationConfig =
         apiExceptionConfig.validation.routes[httpMethod.toLowerCase()];
       if (validationConfig && validationConfig.path === routeConfig.path) {
         for (const param of validationConfig.requiredParams) {
           if (!request.params[param]) {
-            // Si falta un parámetro requerido, devolver un error 400 Bad Request
             response.status(parseInt(apiExceptionConfig.badRequest.code)).json({
-              code: apiExceptionConfig.badRequest.code, // Tipo de error
-              message: `The parameter "${param}" is required for this route.`, // Mensaje indicando el parámetro faltante
+              code: apiExceptionConfig.badRequest.code,
+              message: `The parameter "${param}" is required for this route.`,
               timestamp: new Date().toISOString(),
               service:
                 apiMethodsName[
                   httpMethod.toLowerCase() as keyof typeof apiMethodsName
-                ], // Código HTTP
+                ],
             });
             return;
           }
@@ -77,21 +74,17 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
         code: apiExceptionConfig.notFound.code,
         message: customMessage,
         timestamp: new Date().toISOString(),
-        service:
-          apiMethodsName[
-            httpMethod.toLowerCase() as keyof typeof apiMethodsName
-          ], // Obtener el mensaje del método
+        service: entity, // Usar la entidad extraída de la configuración de ruta
       });
       return;
     }
 
-    // Respuesta para el caso de Not Found genérico cuando no se encuentra la ruta
+    // Respuesta para el caso de Not Found genérico
     response.status(HttpStatus.NOT_FOUND).json({
       code: apiExceptionConfig.notFound.code,
       message: customMessage,
       timestamp: new Date().toISOString(),
-      service:
-        apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName], // Obtener el mensaje del método
+      service: entity, // Usar la entidad extraída de la configuración de ruta
     });
 
     // Log de error para registrar detalles sobre la excepción
@@ -99,9 +92,30 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
       code: apiExceptionConfig.notFound.code,
       message: customMessage,
       timestamp: new Date().toISOString(),
-      service:
-        apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName], // Obtener el mensaje del método
+      service: entity,
     });
     this.logger.error(errorLogs); // Registro del error utilizando el servicio de logger
+  }
+
+  // Obtener la configuración de la ruta con una opción por defecto si no se encuentra coincidencia
+  private getRouteConfig(httpMethod: string, url: string) {
+    const defaultRouteConfig = {
+      entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
+      method: httpMethod,
+      path: url,
+    };
+
+    return (
+      apiExceptionConfig.notFound.routes.find(
+        (route) => route.method === httpMethod && url.startsWith(route.path),
+      ) || defaultRouteConfig
+    );
+  }
+
+  // Obtener la entidad basada en el método HTTP
+  private getEntityFromMethod(httpMethod: string) {
+    return apiMethodsName[
+      httpMethod.toLowerCase() as keyof typeof apiMethodsName
+    ];
   }
 }

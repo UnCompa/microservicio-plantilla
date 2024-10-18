@@ -3,12 +3,14 @@ import {
   Catch,
   HttpException,
   ArgumentsHost,
+  HttpStatus,
+  BadRequestException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
+import { match } from 'path-to-regexp';
+import { enablePathMethods } from 'src/utils/api/apiEnableMethods';
 import { LoggerService } from '../loggger/logger.service';
-import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { ValidationError } from 'class-validator';
-import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
@@ -18,13 +20,132 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
+    const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
-    let groupedErrors: Record<string, string[]> = {};
+    const path = request.originalUrl; // Obtener el path solicitado
+    console.log(httpMethod);
+    let customMessage =
+      exception.message ||
+      `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
+    if (
+      request.body == undefined &&
+      (httpMethod == 'post' || httpMethod == 'put')
+    ) {
+      customMessage = 'Structure error';
+    }
+    if (
+      Object.keys(request.body).length === 0 &&
+      (httpMethod == 'post' || httpMethod == 'put')
+    ) {
+      customMessage = 'Structure error';
+    }
+    // Verificar si la ruta está definida en enablePathMethods para el método actual
+    const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
+    const validationErrors = this.extractValidationErrors(exception);
+    if (!isMethodAllowed) {
+      // Verificar si la ruta existe para cualquier método
+      const isRouteDefined = this.isRouteDefined(path);
+
+      if (!isRouteDefined) {
+        // Si la ruta no está definida en ningún método, devolver un 404
+        return this.handleNotFound(response, path);
+      }
+
+      // Si la ruta existe pero el método no está permitido, devolver un 405
+      return this.handleMethodNotAllowed(response, path);
+    }
+
+    // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
+    const errorLogs = this.createErrorLog(
+      exception,
+      status,
+      httpMethod,
+      path,
+      customMessage,
+      validationErrors,
+    );
+    this.logger.error(JSON.stringify(errorLogs));
+    return response.status(status).json(errorLogs);
+  }
+
+  // Verificar si la ruta está definida para el método HTTP actual
+  private isMethodAllowed(httpMethod: string, path: string): boolean {
+    if (enablePathMethods[httpMethod]) {
+      return enablePathMethods[httpMethod].some((allowedPath) => {
+        const matcher = match(allowedPath, { decode: decodeURIComponent });
+        return matcher(path);
+      });
+    }
+    return false;
+  }
+
+  // Verificar si la ruta está definida en cualquier método
+  private isRouteDefined(path: string): boolean {
+    return Object.values(enablePathMethods).some((allowedPaths) =>
+      allowedPaths.some((allowedPath) => {
+        const matcher = match(allowedPath, { decode: decodeURIComponent });
+        return matcher(path);
+      }),
+    );
+  }
+
+  // Manejar la respuesta para rutas no encontradas (404)
+  private handleNotFound(response: Response, path: string) {
+    const errorResponse = {
+      code: HttpStatus.NOT_FOUND,
+      message: `Route ${path} not found`,
+      timestamp: new Date().toISOString(),
+    };
+    this.logger.error(JSON.stringify(errorResponse));
+    response.status(HttpStatus.NOT_FOUND).json(errorResponse);
+  }
+
+  // Manejar la respuesta para métodos no permitidos (405)
+  private handleMethodNotAllowed(response: Response, path: string) {
+    const errorResponse = {
+      code: HttpStatus.METHOD_NOT_ALLOWED,
+      message: `Method not allowed for path: ${path}`,
+      timestamp: new Date().toISOString(),
+    };
+    this.logger.error(JSON.stringify(errorResponse));
+    response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
+  }
+
+  // Crear log de error para respuestas personalizadas
+  private createErrorLog(
+    exception: HttpException,
+    status: number,
+    httpMethod: string,
+    path: string,
+    message: string,
+    groupedErrors: Record<string, string[]>,
+  ) {
+    let errors;
+    if (groupedErrors) {
+      errors = {
+        code: status,
+        message: message,
+        timestamp: new Date().toISOString(),
+        path,
+        method: httpMethod.toUpperCase(),
+        groupedErrors: groupedErrors,
+      };
+    } else {
+      errors = {
+        code: status,
+        message: message,
+        timestamp: new Date().toISOString(),
+        path,
+        method: httpMethod.toUpperCase(),
+      };
+    }
+    return errors;
+  }
+  private extractValidationErrors(exception: BadRequestException) {
     const exceptionResponse: any = exception.getResponse();
     const validationErrors = exceptionResponse.message;
-    console.log(validationErrors);
+    let groupedErrors: Record<string, string[]> = {};
 
-    // Agrupar errores de validación
     if (Array.isArray(validationErrors)) {
       groupedErrors = validationErrors.reduce(
         (acc: Record<string, string[]>, error: ValidationError | string) => {
@@ -45,40 +166,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       groupedErrors.general = [validationErrors];
     }
 
-    if (status === 405 || status === 409) {
-      const customMessage =
-        exception.message || apiExceptionConfig.methodNotAllowed.message; // Mensaje personalizado
-      const httpMethod = request.method; // Obtener el método HTTP
-      const serviceName =
-        apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName]; // Obtener el nombre del servicio
-      const errorLogs = {
-        code: exception.name, // Código del error configurable
-        message: customMessage, // Mensaje personalizado
-        timestamp: new Date().toISOString(), // Timestamp actual
-        service: serviceName, // Incluir el nombre del servicio
-      };
-
-      // Log de error
-      this.logger.error(JSON.stringify(errorLogs));
-
-      // Responder al cliente con la estructura nueva
-      response.status(status).json(errorLogs);
-    } else {
-      // Manejo para otros tipos de excepciones
-      const errorLogs = {
-        code: apiExceptionConfig.methodNotAllowed.code, // Puedes ajustar esto según tu configuración
-        message: exception.message,
-        timestamp: new Date().toISOString(),
-        service:
-          apiMethodsName[
-            request.method.toLowerCase() as keyof typeof apiMethodsName
-          ],
-        errors: groupedErrors, // Incluyendo errores agrupados en el log
-      };
-
-      this.logger.error(JSON.stringify(errorLogs));
-
-      response.status(status).json(errorLogs);
-    }
+    return groupedErrors;
   }
 }

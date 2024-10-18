@@ -5,9 +5,9 @@ import {
   ArgumentsHost,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
-import { LoggerService } from '../loggger/logger.service';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig'; // Asegúrate de que la ruta sea correcta
-import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
+import { LoggerService } from '../loggger/logger.service';
 
 @Catch(InternalServerErrorException)
 export class InternalServerErrorExceptionFilter implements ExceptionFilter {
@@ -18,25 +18,61 @@ export class InternalServerErrorExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
+    const httpMethod = request.method;
 
-    const customMessage =
-      exception.message || apiExceptionConfig.internalServerError.message; // Mensaje personalizado
-    const httpMethod = request.method; // Obtener el método HTTP
-    const serviceName =
-      apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName]; // Obtener el nombre del servicio
+    // Obtener la configuración de la ruta o usar la entidad predeterminada
+    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
 
-    // Estructura del log de error
-    const errorLogs = {
-      code: apiExceptionConfig.internalServerError.code, // Código del error configurable
-      message: customMessage, // Mensaje personalizado
-      timestamp: new Date().toISOString(), // Timestamp actual
-      service: serviceName, // Incluir el nombre del servicio
-    };
+    // Crear los logs de error
+    const errorLogs = this.createErrorLog(
+      status,
+      exception.message,
+      httpMethod,
+      entity,
+    );
 
     // Log de error
     this.logger.error(JSON.stringify(errorLogs));
 
     // Responder al cliente con la estructura nueva
     response.status(status).json(errorLogs);
+  }
+
+  // Obtener la configuración de la ruta con una opción por defecto si no se encuentra coincidencia
+  private getRouteConfig(httpMethod: string, url: string) {
+    const defaultRouteConfig = {
+      entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
+      method: httpMethod, // Usar el método HTTP actual
+      path: url, // Ruta genérica
+    };
+
+    return (
+      apiExceptionConfig.internalServerError?.routes.find(
+        (route) => route.method === httpMethod && url.startsWith(route.path),
+      ) || defaultRouteConfig
+    );
+  }
+
+  // Obtener la entidad basada en el método HTTP
+  private getEntityFromMethod(httpMethod: string) {
+    return apiMethodsName[
+      httpMethod.toLowerCase() as keyof typeof apiMethodsName
+    ];
+  }
+
+  // Crear los logs de error
+  private createErrorLog(
+    status: number,
+    customMessage: string | undefined,
+    httpMethod: string,
+    entity: string,
+  ) {
+    return {
+      code: apiExceptionConfig.internalServerError.code, // Código del error configurable
+      message: customMessage || apiExceptionConfig.internalServerError.message, // Mensaje personalizado o predeterminado
+      timestamp: new Date().toISOString(), // Timestamp actual
+      service: apiMethods(httpMethod, entity), // Incluir el nombre del servicio
+    };
   }
 }
