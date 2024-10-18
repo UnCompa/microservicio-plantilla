@@ -1,6 +1,6 @@
 import { Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { apiStatus, createEntity } from 'src/utils/api/entityExample/apiStatus';
+import { apiStatus, createEntity } from 'src/utils/api/oneOperation/apiStatus';
 
 @ApiTags('pathDeTuServicio')
 @Controller('pathDeTuServicio')

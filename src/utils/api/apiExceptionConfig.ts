@@ -2,6 +2,8 @@ import { apiBaseEntityName } from './apiEntites';
 import { apiMethodsName } from './apiMethodsName';
 import { routesExceptions } from './apiRoutesExceptions';
 
+//Para usarlo en el swagger
+
 export const apiExceptionConfig = {
   notFound: {
     code: 'Not Found',

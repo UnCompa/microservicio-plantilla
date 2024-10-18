@@ -1,7 +1,7 @@
 import { ErrorDto } from 'src/core/application/dtos/error.dto';
-import { apiBaseEntityName } from './apiEntites';
-import { apiMethodsName } from './apiMethodsName';
+import { apiMethodsName } from '../apiMethodsName';
 import { ResponseDto } from 'src/core/application/dtos/response.dto';
+import { apiBaseEntityName2 } from '../apiEntites';
 
 export const sendEntity = [
   {
@@ -101,13 +101,13 @@ export const apiStatus = {
   },
   notFound: {
     status: 404,
-    description: `${apiBaseEntityName} not found`,
+    description: `${apiBaseEntityName2} not found`,
     type: ErrorDto,
     content: {
       'application/json': {
         example: {
           code: '404',
-          message: `${apiBaseEntityName} not found`,
+          message: `${apiBaseEntityName2} not found`,
           timestamp: new Date().toISOString(),
           service: apiMethodsName.get,
         },
@@ -115,20 +115,20 @@ export const apiStatus = {
     },
     example: {
       code: '404',
-      message: `${apiBaseEntityName} not found`,
+      message: `${apiBaseEntityName2} not found`,
       timestamp: new Date().toISOString(),
       service: apiMethodsName.get,
     },
   },
   methodNotserviceowed: {
     status: 405,
-    description: `${apiBaseEntityName} method not serviceowed`,
+    description: `${apiBaseEntityName2} method not serviceowed`,
     type: ErrorDto,
     content: {
       'application/json': {
         example: {
           code: '405',
-          message: `${apiBaseEntityName} method not serviceowed`,
+          message: `${apiBaseEntityName2} method not serviceowed`,
           timestamp: new Date().toISOString(),
           service: apiMethodsName.service,
         },
@@ -136,20 +136,20 @@ export const apiStatus = {
     },
     example: {
       code: '405',
-      message: `${apiBaseEntityName} method not serviceowed`,
+      message: `${apiBaseEntityName2} method not serviceowed`,
       timestamp: new Date().toISOString(),
       service: apiMethodsName.service,
     },
   },
   requestTimeout: {
     status: 408,
-    description: `Request timed out while waiting for ${apiBaseEntityName}`,
+    description: `Request timed out while waiting for ${apiBaseEntityName2}`,
     type: ErrorDto,
     content: {
       'application/json': {
         example: {
           code: '408',
-          message: `Request timed out while waiting for ${apiBaseEntityName}`,
+          message: `Request timed out while waiting for ${apiBaseEntityName2}`,
           timestamp: new Date().toISOString(),
           service: apiMethodsName.service,
         },
@@ -157,7 +157,7 @@ export const apiStatus = {
     },
     example: {
       code: '408',
-      message: `Request timed out while waiting for ${apiBaseEntityName}`,
+      message: `Request timed out while waiting for ${apiBaseEntityName2}`,
       timestamp: new Date().toISOString(),
       service: apiMethodsName.service,
     },
@@ -206,13 +206,13 @@ export const apiStatus = {
   },
   serviceUnavailable: {
     status: 503,
-    description: `Service unavailable for ${apiBaseEntityName}`,
+    description: `Service unavailable for ${apiBaseEntityName2}`,
     type: ErrorDto,
     content: {
       'application/json': {
         example: {
           code: '503',
-          message: `Service unavailable for ${apiBaseEntityName}`,
+          message: `Service unavailable for ${apiBaseEntityName2}`,
           timestamp: new Date().toISOString(),
           service: apiMethodsName.service,
         },
@@ -220,7 +220,7 @@ export const apiStatus = {
     },
     example: {
       code: '503',
-      message: `Service unavailable for ${apiBaseEntityName}`,
+      message: `Service unavailable for ${apiBaseEntityName2}`,
       timestamp: new Date().toISOString(),
       service: apiMethodsName.service,
     },

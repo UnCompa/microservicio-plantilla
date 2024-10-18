@@ -1,5 +1,7 @@
 import { apiBaseEntityName } from './apiEntites';
 
+
+//En caso de tener una sola operacion
 export const apiMethodsName = {
   get: `Retrieves ${apiBaseEntityName}`,
   post: `Save ${apiBaseEntityName}`,
