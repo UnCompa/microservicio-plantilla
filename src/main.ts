@@ -12,12 +12,16 @@ import { ForbiddenExceptionFilter } from './core/application/exceptions/forbidde
 import { InternalServerErrorExceptionFilter } from './core/application/exceptions/internal-server-error.exception';
 import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/service-unavailable.exception';
 import { UnauthorizedExceptionFilter } from './core/application/exceptions/unauthorized.exception';
+import { LoggerKafkaService } from './core/application/loggger/loggerKafka.service';
 
 async function bootstrap() {
   //Establecer logger e inicializar NEST
-  const logger = new LoggerService();
+  const logger =
+    process.env.USE_KAFKA == 'true'
+      ? new LoggerKafkaService()
+      : new LoggerService();
   const app = await NestFactory.create(AppModule, {
-    logger: new LoggerService(),
+    logger: logger,
   });
   // Validaciones
   app.useGlobalPipes(new ValidationPipe());

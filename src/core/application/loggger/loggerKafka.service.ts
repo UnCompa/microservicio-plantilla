@@ -8,12 +8,16 @@ export class LoggerKafkaService extends LoggerService {
 
   constructor() {
     super();
-    // Inicializamos KafkaLogger con el broker y el tópico deseado
-    this.kafkaLogger = new KafkaLogger(['localhost:9092'], 'example');
-    this.kafkaLogger.connect(); // Conectamos a Kafka
+    const brokers = process.env.KAFKA_BROKERS?.split(',') || [
+      '192.168.68.127:9092',
+    ];
+    const topic = process.env.KAFKA_TOPIC || 'logs_topic';
+    this.kafkaLogger = new KafkaLogger(brokers, topic);
+    this.kafkaLogger.connect();
   }
 
   async log(message: string) {
+    console.log('mensaje' + message);
     await super.log(message); // Llama al método log de la clase base (Winston)
     await this.kafkaLogger.logMessage(
       'info',
