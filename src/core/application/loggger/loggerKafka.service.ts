@@ -10,9 +10,9 @@ export class LoggerKafkaService extends LoggerService {
   constructor() {
     super();
     const brokers = process.env.KAFKA_BROKERS?.split(',') || [
-      '192.168.68.127:9092',
+      '192.168.68.129:9092',
     ];
-    const topic = process.env.KAFKA_TOPIC || 'logs_topic';
+    const topic = process.env.KAFKA_TOPIC || 'test-topic';
     const clientId = process.env.KAFKA_TOPIC || 'logger-service';
     this.kafkaLogger = new KafkaLogger(brokers, topic, clientId);
     this.kafkaLogger.connect();

@@ -82,7 +82,7 @@ export class UserService {
     } catch (error) {
       // Aquí puedes lanzar una excepción diferente si es necesario, pero asegurate de que sea NotFoundException
       throw new NotFoundException(
-        `${apiBaseEntityName} not found for ID: ${id}` + error,
+        `${apiBaseEntityName} not found for ID: ${id}`,
       );
     }
   }
