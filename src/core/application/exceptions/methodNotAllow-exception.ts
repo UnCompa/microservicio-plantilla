@@ -23,7 +23,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
-    console.log(httpMethod);
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;

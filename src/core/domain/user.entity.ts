@@ -1,6 +1,6 @@
 //Definir entidad para la logica de negocio
 export class User {
-  id: string;
+  id?: string;
   name: string;
   email: string;
   constructor(id: string, name: string, email: string) {
