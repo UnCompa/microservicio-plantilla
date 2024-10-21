@@ -10,7 +10,7 @@ export class LoggerKafkaService extends LoggerService {
   constructor() {
     super();
     const brokers = process.env.KAFKA_BROKERS?.split(',') || [
-      '192.168.68.129:9092',
+      'localhost:9092',
     ];
     const topic = process.env.KAFKA_TOPIC || 'test-topic';
     const clientId = process.env.KAFKA_TOPIC || 'logger-service';

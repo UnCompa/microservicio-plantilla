@@ -44,9 +44,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     }
     // Verificar si la ruta está definida en enablePathMethods para el método actual
     const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
-    console.log(isMethodAllowed);
     const validationErrors = this.extractValidationErrors(exception);
-    console.log(validationErrors);
     if (!isMethodAllowed) {
       // Verificar si la ruta existe para cualquier método
       const isRouteDefined = this.isRouteDefined(path);
@@ -75,7 +73,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       customMessage,
       validationErrors,
     );
-    (errorLogs);
     this.logger.error(JSON.stringify(errorLogs));
     return response.status(status).json(errorLogs);
   }
@@ -103,7 +100,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
 
   // Manejar la respuesta para rutas no encontradas (404)
   private handleNotFound(response: Response, path: string, entity: string) {
-    console.log(entity);
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
       message: `Route ${path} not found`,
@@ -142,8 +138,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         code: status,
         message: message,
         timestamp: new Date().toISOString(),
+        service: method,
         path,
-        method: method,
         groupedErrors: groupedErrors,
       };
     } else {
@@ -151,8 +147,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         code: status,
         message: message,
         timestamp: new Date().toISOString(),
+        service: method,
         path,
-        method: method,
       };
     }
     return errors;

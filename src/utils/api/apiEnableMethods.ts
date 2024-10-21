@@ -4,10 +4,8 @@ export const enablePathMethods = {
     '/msa/users/1.0', // Ruta con parámetro dinámico :id
     '/msa/users/2.0/:id', // Ruta con parámetro dinámico :id
   ],
-  post: ['/msa/users/1.0', '/msa/users/2.0'],
-  put: [
-    '/msa/users/1.0/:id', // Ruta con parámetro dinámico :id
-  ],
-  delete: ['/msa/users/1.0/:id'],
+  post: [],
+  put: [],
+  delete: [],
   patch: [],
 };
