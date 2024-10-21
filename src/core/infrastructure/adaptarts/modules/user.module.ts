@@ -1,4 +1,4 @@
-import { MiddlewareConsumer, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { UserController } from '../controllers/v1/user.controller';
 import { UserService } from 'src/core/application/services/user.service';
 import { PrismaService } from 'src/core/application/prisma/prisma.service';

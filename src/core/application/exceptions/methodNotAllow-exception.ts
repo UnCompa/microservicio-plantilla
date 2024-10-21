@@ -44,27 +44,27 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     }
     // Verificar si la ruta está definida en enablePathMethods para el método actual
     const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
-    console.log(isMethodAllowed);
     const validationErrors = this.extractValidationErrors(exception);
-    console.log(validationErrors);
     if (!isMethodAllowed) {
       // Verificar si la ruta existe para cualquier método
       const isRouteDefined = this.isRouteDefined(path);
 
       if (!isRouteDefined) {
         // Si la ruta no está definida en ningún método, devolver un 404
-        return this.handleNotFound(response, path, entity);
+        return this.handleNotFound(response, path, entity, httpMethod);
       }
 
       // Si la ruta existe pero el método no está permitido, devolver un 405
-      return this.handleMethodNotAllowed(response, path, entity);
+      return this.handleMethodNotAllowed(response, path, entity, httpMethod);
     }
     let entityApi;
-    if(routeConfig.entity) {
-      entityApi = setMethodsName(httpMethod, entity)
+    console.log(routeConfig.entity);
+    if (routeConfig.entity) {
+      entityApi = routeConfig.entity;
     } else {
-      entityApi = entity
+      entityApi = entity;
     }
+    console.log(entityApi);
     // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
     const errorLogs = this.createErrorLog(
       exception,
@@ -75,7 +75,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       customMessage,
       validationErrors,
     );
-    (errorLogs);
     this.logger.error(JSON.stringify(errorLogs));
     return response.status(status).json(errorLogs);
   }
@@ -102,25 +101,38 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   }
 
   // Manejar la respuesta para rutas no encontradas (404)
-  private handleNotFound(response: Response, path: string, entity: string) {
-    console.log(entity);
+  private handleNotFound(
+    response: Response,
+    path: string,
+    entity: string,
+    httpMethod: string,
+  ) {
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
       message: `Route ${path} not found`,
       timestamp: new Date().toISOString(),
-      service: setMethodsName(response.status.toString(), entity)
+      service:
+        setMethodsName(response.status.toString(), entity) ??
+        this.getEntityFromMethod(httpMethod),
     };
     this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.NOT_FOUND).json(errorResponse);
   }
 
   // Manejar la respuesta para métodos no permitidos (405)
-  private handleMethodNotAllowed(response: Response, path: string, entity: string) {
+  private handleMethodNotAllowed(
+    response: Response,
+    path: string,
+    entity: string,
+    httpMethod: string,
+  ) {
     const errorResponse = {
       code: HttpStatus.METHOD_NOT_ALLOWED,
       message: `Method not allowed for path: ${path}`,
       timestamp: new Date().toISOString(),
-      service: setMethodsName(response.status.toString(), entity)
+      service:
+        setMethodsName(response.status.toString(), entity) ??
+        this.getEntityFromMethod(httpMethod),
     };
     this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
@@ -151,8 +163,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         code: status,
         message: message,
         timestamp: new Date().toISOString(),
+        service: method,
         path,
-        method: method,
       };
     }
     return errors;
@@ -191,7 +203,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
       method: httpMethod,
       path: url,
-    };    
+    };
     return (
       apiExceptionConfig.notFound.routes.find(
         (route) => route.method === httpMethod && url.startsWith(route.path),

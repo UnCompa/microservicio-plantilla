@@ -21,7 +21,7 @@ export class UserService {
     private logger: LoggerService,
   ) {}
 
-  async create(data: CreateUserDto): Promise<object> {
+  async create(da\ta: CreateUserDto): Promise<object> {
     const userExists = await this.prisma.users.findMany({
       where: { email: data.email },
     });
@@ -47,7 +47,6 @@ export class UserService {
   }
 
   async findAll(limit: string, page: string): Promise<SendData | User[]> {
-    this.logger.debug('NOSE XD');
     const total = await this.prisma.users.count();
     const pageQuery = limit && page ? page : (page = '1');
     if (limit) {
