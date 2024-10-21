@@ -11,6 +11,8 @@ import { match } from 'path-to-regexp';
 import { enablePathMethods } from 'src/utils/api/apiEnableMethods';
 import { LoggerService } from '../loggger/logger.service';
 import { ValidationError } from 'class-validator';
+import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
+import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
@@ -23,6 +25,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
+    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
@@ -40,29 +44,38 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     }
     // Verificar si la ruta está definida en enablePathMethods para el método actual
     const isMethodAllowed = this.isMethodAllowed(httpMethod, path);
+    console.log(isMethodAllowed);
     const validationErrors = this.extractValidationErrors(exception);
+    console.log(validationErrors);
     if (!isMethodAllowed) {
       // Verificar si la ruta existe para cualquier método
       const isRouteDefined = this.isRouteDefined(path);
 
       if (!isRouteDefined) {
         // Si la ruta no está definida en ningún método, devolver un 404
-        return this.handleNotFound(response, path);
+        return this.handleNotFound(response, path, entity);
       }
 
       // Si la ruta existe pero el método no está permitido, devolver un 405
-      return this.handleMethodNotAllowed(response, path);
+      return this.handleMethodNotAllowed(response, path, entity);
     }
-
+    let entityApi;
+    if(routeConfig.entity) {
+      entityApi = setMethodsName(httpMethod, entity)
+    } else {
+      entityApi = entity
+    }
     // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
     const errorLogs = this.createErrorLog(
       exception,
       status,
       httpMethod,
       path,
+      entityApi,
       customMessage,
       validationErrors,
     );
+    (errorLogs);
     this.logger.error(JSON.stringify(errorLogs));
     return response.status(status).json(errorLogs);
   }
@@ -89,22 +102,25 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   }
 
   // Manejar la respuesta para rutas no encontradas (404)
-  private handleNotFound(response: Response, path: string) {
+  private handleNotFound(response: Response, path: string, entity: string) {
+    console.log(entity);
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
       message: `Route ${path} not found`,
       timestamp: new Date().toISOString(),
+      service: setMethodsName(response.status.toString(), entity)
     };
     this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.NOT_FOUND).json(errorResponse);
   }
 
   // Manejar la respuesta para métodos no permitidos (405)
-  private handleMethodNotAllowed(response: Response, path: string) {
+  private handleMethodNotAllowed(response: Response, path: string, entity: string) {
     const errorResponse = {
       code: HttpStatus.METHOD_NOT_ALLOWED,
       message: `Method not allowed for path: ${path}`,
       timestamp: new Date().toISOString(),
+      service: setMethodsName(response.status.toString(), entity)
     };
     this.logger.error(JSON.stringify(errorResponse));
     response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
@@ -116,17 +132,18 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     status: number,
     httpMethod: string,
     path: string,
+    method: string,
     message: string,
     groupedErrors: Record<string, string[]>,
   ) {
     let errors;
-    if (groupedErrors) {
+    if (Array.isArray(groupedErrors)) {
       errors = {
         code: status,
         message: message,
         timestamp: new Date().toISOString(),
         path,
-        method: httpMethod.toUpperCase(),
+        method: method,
         groupedErrors: groupedErrors,
       };
     } else {
@@ -135,7 +152,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         message: message,
         timestamp: new Date().toISOString(),
         path,
-        method: httpMethod.toUpperCase(),
+        method: method,
       };
     }
     return errors;
@@ -144,7 +161,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const exceptionResponse: any = exception.getResponse();
     const validationErrors = exceptionResponse.message;
     let groupedErrors: Record<string, string[]> = {};
-
     if (Array.isArray(validationErrors)) {
       groupedErrors = validationErrors.reduce(
         (acc: Record<string, string[]>, error: ValidationError | string) => {
@@ -161,10 +177,25 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         },
         {},
       );
-    } else if (typeof validationErrors === 'string') {
-      groupedErrors.general = [validationErrors];
     }
 
     return groupedErrors;
+  }
+  private getEntityFromMethod(httpMethod: string) {
+    return apiMethodsName[
+      httpMethod.toLowerCase() as keyof typeof apiMethodsName
+    ];
+  }
+  private getRouteConfig(httpMethod: string, url: string) {
+    const defaultRouteConfig = {
+      entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
+      method: httpMethod,
+      path: url,
+    };    
+    return (
+      apiExceptionConfig.notFound.routes.find(
+        (route) => route.method === httpMethod && url.startsWith(route.path),
+      ) || defaultRouteConfig
+    );
   }
 }
