@@ -13,49 +13,34 @@ export class LoggerKafkaService extends LoggerService {
       'localhost:9092',
     ];
     const topic = process.env.KAFKA_TOPIC || 'test-topic';
-    const clientId = process.env.KAFKA_TOPIC || 'logger-service';
-    this.kafkaLogger = new KafkaLogger(brokers, topic, clientId);
+
+    this.kafkaLogger = new KafkaLogger(brokers, topic);
     this.kafkaLogger.connect();
   }
 
-  async log(message: string, method?: string) {
-    await super.log(message); // Llama al método log de la clase base (Winston)
-    await this.kafkaLogger.logMessage(
-      'info',
-      this.messageFormat(message, 'INFO'),
-    ); // Log en Kafka
+  async log(message: string, method?: string, entity?: string) {
+    const mensaje = messageCustom(message, method, entity, 'INFO');
+    await this.kafkaLogger.logCustomMessage('INFO', mensaje);
   }
 
-  async error(message: string) {
-    await super.error(message); // Llama al método error de la clase base (Winston)
-    await this.kafkaLogger.logMessage(
-      'error',
-      this.messageFormat(message, 'ERROR'),
-    ); // Log en Kafka
+  async error(message: string, method?: string, entity?: string) {
+    const mensaje = messageCustom(message, method, entity, 'ERROR');
+    await this.kafkaLogger.logCustomMessage('ERROR', mensaje);
   }
 
-  async warn(message: string) {
-    await super.warn(message); // Llama al método warn de la clase base (Winston)
-    await this.kafkaLogger.logMessage(
-      'warn',
-      this.messageFormat(message, 'WARN'),
-    ); // Log en Kafka
+  async warn(message: string, method?: string, entity?: string) {
+    const mensaje = messageCustom(message, method, entity, 'WARN');
+    await this.kafkaLogger.logCustomMessage('WARN', JSON.stringify(mensaje));
   }
 
-  async debug(message: string) {
-    await super.debug(message); // Llama al método debug de la clase base (Winston)
-    await this.kafkaLogger.logMessage(
-      'debug',
-      this.messageFormat(message, 'DEBUG'),
-    ); // Log en Kafka
+  async debug(message: string, method?: string, entity?: string) {
+    const mensaje = messageCustom(message, method, entity, 'DEBUG');
+    await this.kafkaLogger.logCustomMessage('DEBUG', JSON.stringify(mensaje));
   }
 
-  async verbose(message: string) {
-    await super.verbose(message); // Llama al método verbose de la clase base (Winston)
-    await this.kafkaLogger.logMessage(
-      'verbose',
-      this.messageFormat(message, 'VERBOSE'),
-    ); // Log en Kafka
+  async verbose(message: string, method?: string, entity?: string) {
+    const mensaje = messageCustom(message, method, entity, 'VERBOSE');
+    await this.kafkaLogger.logCustomMessage('VERBOSE', JSON.stringify(mensaje));
   }
 
   // Función auxiliar para formatear el mensaje

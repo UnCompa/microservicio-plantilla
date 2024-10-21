@@ -13,11 +13,26 @@ export const apiMethodsName = {
   '000': `Exito ${apiBaseEntityName}`,
 };
 export const setMethodsName = (
-  httpMethod: 'GET' | 'POST' | 'PUT' | 'DELETE' | 'SERVICE' | 'get' | 'post' | 'put' | 'delete' | string, 
-  apiBaseEntityName: string
+  httpMethod:
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'SERVICE'
+    | 'get'
+    | 'post'
+    | 'put'
+    | 'delete'
+    | string,
+  apiBaseEntityName: string,
 ): string => {
-  const method = httpMethod.toUpperCase() as 'GET' | 'POST' | 'PUT' | 'DELETE' | 'SERVICE';
-  
+  const method = httpMethod.toUpperCase() as
+    | 'GET'
+    | 'POST'
+    | 'PUT'
+    | 'DELETE'
+    | 'SERVICE';
+
   switch (method) {
     case 'GET':
       return `Retrieves ${apiBaseEntityName}`;
