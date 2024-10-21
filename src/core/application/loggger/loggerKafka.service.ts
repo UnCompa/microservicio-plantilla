@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { KafkaLogger } from 'kafka-logger-mm'; // Librería de Kafka
 import { LoggerService } from './logger.service';
 import { messageCustom } from 'src/utils/api/apiKafkaLogConfig';
+import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 
 @Injectable()
 export class LoggerKafkaService extends LoggerService {
@@ -9,16 +10,18 @@ export class LoggerKafkaService extends LoggerService {
 
   constructor() {
     super();
-    const brokers = process.env.KAFKA_BROKERS?.split(',') || [
-      '192.168.68.129:9092',
-    ];
-    const topic = process.env.KAFKA_TOPIC || 'test-topic';
+    const brokers = process.env.KAFKA_BROKERS?.split(',') || ['localhost:9092'];
+    const topic = process.env.KAFKA_TOPIC || 'example';
 
     this.kafkaLogger = new KafkaLogger(brokers, topic);
     this.kafkaLogger.connect();
   }
 
-  async log(message: string, method?: string, entity?: string) {
+  async log(
+    message: string,
+    method: string = 'GET',
+    entity: string = apiBaseEntityName,
+  ) {
     const mensaje = messageCustom(message, method, entity, 'INFO');
     await this.kafkaLogger.logCustomMessage('INFO', mensaje);
   }
@@ -30,17 +33,17 @@ export class LoggerKafkaService extends LoggerService {
 
   async warn(message: string, method?: string, entity?: string) {
     const mensaje = messageCustom(message, method, entity, 'WARN');
-    await this.kafkaLogger.logCustomMessage('WARN', JSON.stringify(mensaje));
+    await this.kafkaLogger.logCustomMessage('WARN', mensaje);
   }
 
   async debug(message: string, method?: string, entity?: string) {
     const mensaje = messageCustom(message, method, entity, 'DEBUG');
-    await this.kafkaLogger.logCustomMessage('DEBUG', JSON.stringify(mensaje));
+    await this.kafkaLogger.logCustomMessage('DEBUG', mensaje);
   }
 
   async verbose(message: string, method?: string, entity?: string) {
     const mensaje = messageCustom(message, method, entity, 'VERBOSE');
-    await this.kafkaLogger.logCustomMessage('VERBOSE', JSON.stringify(mensaje));
+    await this.kafkaLogger.logCustomMessage('VERBOSE', mensaje);
   }
 
   // Función auxiliar para formatear el mensaje

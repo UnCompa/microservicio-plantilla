@@ -1,4 +1,5 @@
 import { apiBaseEntityName } from './apiEntites';
+import { Validator } from './apiValidations';
 
 export const apiMethodsName = {
   get: `Retrieves ${apiBaseEntityName}`,
@@ -24,12 +25,14 @@ export const setMethodsName = (
     | string,
   apiBaseEntityName: string,
 ): string => {
-  const method = httpMethod.toUpperCase() as
-    | 'GET'
-    | 'POST'
-    | 'PUT'
-    | 'DELETE'
-    | 'SERVICE';
+  console.log(httpMethod);
+  let method;
+  console.log(Validator.isUpperCase(httpMethod));
+  if (Validator.isUpperCase(httpMethod)) {
+    method = httpMethod.toUpperCase();
+  } else {
+    method = httpMethod;
+  }
 
   switch (method) {
     case 'GET':

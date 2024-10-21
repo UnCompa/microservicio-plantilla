@@ -10,18 +10,18 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from 'src/core/domain/user.entity';
 import { SendData } from '../dtos/sendDataUser.dto';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
-import { LoggerService } from '../loggger/logger.service';
+//import { LoggerService } from '../loggger/logger.service';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
-//import { LoggerKafkaService } from '../loggger/loggerKafka.service';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private logger: LoggerService,
+    private logger: LoggerKafkaService,
   ) {}
 
-  async create(da\ta: CreateUserDto): Promise<object> {
+  async create(data: CreateUserDto): Promise<object> {
     const userExists = await this.prisma.users.findMany({
       where: { email: data.email },
     });

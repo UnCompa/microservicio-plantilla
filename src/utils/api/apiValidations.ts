@@ -38,4 +38,13 @@ export class Validator {
     const numberRegex = /^\d+$/; // Solo dígitos
     return numberRegex.test(value);
   }
+  // Otros métodos...
+
+  // Método para verificar si una cadena está completamente en mayúsculas
+  public static isUpperCase(value: string): boolean {
+    if (typeof value !== 'string' || !value) {
+      return false;
+    }
+    return value === value.toUpperCase();
+  }
 }
