@@ -2,6 +2,7 @@ import { Controller, HttpCode, Post } from '@nestjs/common';
 import { ApiCreatedResponse, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { apiStatus, createEntity } from 'src/utils/api/oneOperation/apiStatus';
 
+//TODO: ELIMINAR ESTE CONTROLADOR EN CASO DE NO USARSE, SOLO SIRVE DE EJEMPLO
 @ApiTags('pathDeTuServicio')
 @Controller('pathDeTuServicio')
 export class UserController {

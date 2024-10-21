@@ -1,5 +1,5 @@
 import { apiBaseEntityName } from './apiEntites';
-import { apiMethodsName } from './apiMethodsName';
+import { apiMethodsName, setMethodsName } from './apiMethodsName';
 import { routesExceptions } from './apiRoutesExceptions';
 
 //Para usarlo en el swagger
@@ -14,7 +14,7 @@ export const apiExceptionConfig = {
       code: 'Not Found',
       message: `${apiBaseEntityName} not found`,
       timestamp: new Date().toISOString(),
-      service: apiMethodsName.get,
+      service: setMethodsName("GET", apiBaseEntityName),
     },
     routes: routesExceptions.notFound,
   },

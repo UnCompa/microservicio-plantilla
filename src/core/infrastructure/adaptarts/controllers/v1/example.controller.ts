@@ -1,7 +1,7 @@
 import { Controller, Get, UseGuards } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 //import { CheckDatabaseConnectionGuard } from 'src/core/application/decorators/check-database.decorator';
-import { ExampleService } from 'src/core/application/services/user.service';
+import { ExampleService } from 'src/core/application/services/example.service';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 
 //@ApiTags('/msa/example') Agrupar metodos, que se usaran en swagger
