@@ -1,9 +1,8 @@
 import {
   Injectable,
   NestMiddleware,
-  HttpException,
-  HttpStatus,
   BadRequestException,
+  MethodNotAllowedException,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 import { match } from 'path-to-regexp';
@@ -41,9 +40,8 @@ export class PathMethodMiddleware implements NestMiddleware {
     }
 
     // Si la ruta existe pero el método no está permitido, lanzamos una excepción 405
-    throw new HttpException(
+    throw new MethodNotAllowedException(
       `Method ${req.method} is not allowed for the path: ${path}`,
-      HttpStatus.METHOD_NOT_ALLOWED,
     );
   }
 }

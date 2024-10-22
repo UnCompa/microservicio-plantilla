@@ -32,14 +32,14 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   app.useGlobalFilters(
-    new BadRequestExceptionFilter(),
-    new NotFoundExceptionFilter(),
-    new ConflictExceptionFilter(),
+    new BadRequestExceptionFilter(loggerService),
+    new NotFoundExceptionFilter(loggerService),
+    new ConflictExceptionFilter(loggerService),
     new ForbiddenExceptionFilter(loggerService),
     new InternalServerErrorExceptionFilter(loggerService),
     new ServiceUnavailableExceptionFilter(loggerService),
     new UnauthorizedExceptionFilter(loggerService),
-    new MethodNotAllowedFilter(),
+    new MethodNotAllowedFilter(loggerService),
   );
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

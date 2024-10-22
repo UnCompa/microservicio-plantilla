@@ -12,14 +12,13 @@ import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(ConflictException)
 export class ConflictExceptionFilter implements ExceptionFilter {
-  private logger: LoggerService | LoggerKafkaService; // Logger variable
-  constructor() {}
+  constructor(private readonly logger: LoggerService) {
+    if (process.env.USE_KAFKA) {
+      this.logger = new LoggerKafkaService();
+    }
+  }
 
   catch(exception: ConflictException, host: ArgumentsHost) {
-    this.logger =
-      process.env.USE_KAFKA == 'true'
-        ? new LoggerKafkaService()
-        : new LoggerService();
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
