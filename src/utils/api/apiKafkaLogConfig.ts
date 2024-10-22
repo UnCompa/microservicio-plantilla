@@ -4,7 +4,19 @@ import { apiBaseEntityName } from './apiEntites';
 
 export const getIp = () => {
   const networkInterfaces = os.networkInterfaces();
-  return networkInterfaces['Wi-Fi'][1].address;
+  // Verificar si la interfaz 'Wi-Fi' existe
+  if (networkInterfaces['Wi-Fi']) {
+    // Verificar que hay al menos dos direcciones en el array
+    if (networkInterfaces['Wi-Fi'].length > 1) {
+      return networkInterfaces['Wi-Fi'][1].address;
+    } else {
+      console.error("No hay suficientes direcciones IP en 'Wi-Fi'.");
+      return '0.0.0.0'; // Retorna un valor por defecto
+    }
+  } else {
+    console.error("La interfaz 'Wi-Fi' no existe.");
+    return '0.0.0.0'; // Retorna un valor por defecto
+  }
 };
 const kafkaConfigFormat = {
   appUser: 'Brandon',
@@ -26,7 +38,7 @@ export const messageCustom = (
   level?: string,
 ): CustomLog => {
   const currentTimestamp = new Date().toISOString();
-  const nose = apiBaseEntityName ?? setMethodsName(method, entity);
+  const microserviceName = apiBaseEntityName ?? setMethodsName(method, entity);
   const startTime = Date.now(); // Tiempo de inicio en milisegundos
   const dataMessage: CustomLog = {
     timestamp: currentTimestamp,
@@ -38,7 +50,7 @@ export const messageCustom = (
     channel: 'web',
     consumer: 'self service portal',
     apiName: kafkaConfigFormat.apiName,
-    microserviceName: nose,
+    microserviceName: microserviceName,
     methodName: method || kafkaConfigFormat.method.get,
     layer: 'Exposicion',
     dateTimeTransacctionStart: currentTimestamp,

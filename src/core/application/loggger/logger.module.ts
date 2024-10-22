@@ -1,5 +1,5 @@
 import { Module, DynamicModule } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { LoggerService } from './logger.service';
 import { LoggerKafkaService } from './loggerKafka.service';
 
@@ -11,7 +11,6 @@ import { LoggerKafkaService } from './loggerKafka.service';
 export class LoggerModule {
   static register(useKafka: boolean): DynamicModule {
     const providers = [LoggerService];
-
     if (useKafka) {
       providers.push(LoggerKafkaService);
     }

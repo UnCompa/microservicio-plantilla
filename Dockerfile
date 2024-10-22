@@ -3,7 +3,7 @@ FROM node:18-alpine AS dependencies
 
 WORKDIR /app
 
-# Copiar package.json y package-lock.json para aprovechar el caché de Docker
+# Copiar package.json y package-lock.json
 COPY package*.json ./
 
 # Instalar solo dependencias de producción
@@ -21,12 +21,12 @@ WORKDIR /app
 # Copiar dependencias desde la etapa anterior
 COPY --from=dependencies /app/node_modules ./node_modules
 
-# Instalar NestJS CLI localmente (necesario para la compilación)
-
-# Copiar el resto del código fuente
+# Copiar el código fuente
 COPY . .
 
-RUN npm install @nestjs/swagger && npm install @nestjs/cli
+# Instalar el NestJS CLI localmente (solo si es necesario para la compilación)
+RUN npm install @nestjs/cli
+
 # Compilar la aplicación NestJS
 RUN npm run build
 
@@ -35,7 +35,7 @@ FROM node:18-alpine AS production
 
 WORKDIR /app
 
-# Copiar solo lo necesario para producción
+# Copiar lo necesario para producción
 COPY --from=builder /app/dist ./dist
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY prisma ./prisma
@@ -47,4 +47,4 @@ ENV NODE_ENV=production
 EXPOSE 3000
 
 # Comando para iniciar la aplicación
-CMD ["node", "dist/main"]
+CMD ["node", "dist/main.js"]

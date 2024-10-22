@@ -13,23 +13,17 @@ import { LoggerService } from '../loggger/logger.service';
 import { ValidationError } from 'class-validator';
 import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
-import { ConfigService } from '@nestjs/config';
 import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
   private logger: LoggerService | LoggerKafkaService; // Logger variable
-  constructor(
-    private readonly loggerService: LoggerService,
-    private readonly kafkaLoggerService: LoggerKafkaService,
-    private readonly configService: ConfigService, // Inyectar el ConfigService
-  ) {
-    // Decidir cuál logger usar basado en la variable de entorno
-    const useKafka = this.configService.get('USE_KAFKA') === 'true';
-    this.logger = useKafka ? this.kafkaLoggerService : this.loggerService;
-  }
-
+  constructor() {}
   catch(exception: HttpException, host: ArgumentsHost) {
+    this.logger =
+      process.env.USE_KAFKA == 'true'
+        ? new LoggerKafkaService()
+        : new LoggerService();
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
