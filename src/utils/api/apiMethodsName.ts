@@ -1,4 +1,5 @@
 import { apiBaseEntityName } from './apiEntites';
+import { Validator } from './apiValidations';
 
 
 //En caso de tener una sola operacion
@@ -26,12 +27,12 @@ export const setMethodsName = (
     | string,
   apiBaseEntityName: string,
 ): string => {
-  const method = httpMethod.toUpperCase() as
-    | 'GET'
-    | 'POST'
-    | 'PUT'
-    | 'DELETE'
-    | 'SERVICE';
+  let method;
+  if (Validator.isUpperCase(httpMethod)) {
+    method = httpMethod.toUpperCase();
+  } else {
+    method = httpMethod;
+  }
 
   switch (method) {
     case 'GET':

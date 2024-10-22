@@ -13,11 +13,15 @@ import { LoggerService } from '../loggger/logger.service';
 import { ValidationError } from 'class-validator';
 import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
-
+  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
+    if (process.env.USE_KAFKA) {
+      this.logger = new LoggerKafkaService();
+    }
+  }
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -58,13 +62,11 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       return this.handleMethodNotAllowed(response, path, entity, httpMethod);
     }
     let entityApi;
-    console.log(routeConfig.entity);
     if (routeConfig.entity) {
       entityApi = routeConfig.entity;
     } else {
       entityApi = entity;
     }
-    console.log(entityApi);
     // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
     const errorLogs = this.createErrorLog(
       exception,
@@ -75,7 +77,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       customMessage,
       validationErrors,
     );
-    this.logger.error(JSON.stringify(errorLogs));
+    this.logger.error(JSON.stringify(errorLogs), httpMethod, entity);
     return response.status(status).json(errorLogs);
   }
 
@@ -115,12 +117,12 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         setMethodsName(response.status.toString(), entity) ??
         this.getEntityFromMethod(httpMethod),
     };
-    this.logger.error(JSON.stringify(errorResponse));
+    this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
     response.status(HttpStatus.NOT_FOUND).json(errorResponse);
   }
 
   // Manejar la respuesta para métodos no permitidos (405)
-  private handleMethodNotAllowed(
+  private async handleMethodNotAllowed(
     response: Response,
     path: string,
     entity: string,
@@ -134,7 +136,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         setMethodsName(response.status.toString(), entity) ??
         this.getEntityFromMethod(httpMethod),
     };
-    this.logger.error(JSON.stringify(errorResponse));
+    this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
     response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
   }
 

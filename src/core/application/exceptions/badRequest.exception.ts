@@ -9,12 +9,17 @@ import { Response, Request } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(BadRequestException)
 export class BadRequestExceptionFilter implements ExceptionFilter {
   private readonly INVALID_JSON_MESSAGE = 'Invalid JSON structure';
 
-  constructor(private readonly logger: LoggerService) {}
+  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
+    if (process.env.USE_KAFKA) {
+      this.logger = new LoggerKafkaService();
+    }
+  }
 
   catch(exception: BadRequestException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

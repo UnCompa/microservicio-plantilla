@@ -11,10 +11,15 @@ import { Validator } from 'src/utils/api/apiValidations';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) {}
+  constructor(private readonly logger: LoggerService) {
+    if (process.env.USE_KAFKA) {
+      this.logger = new LoggerKafkaService();
+    }
+  }
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

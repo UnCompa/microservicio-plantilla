@@ -1,29 +1,53 @@
 import * as os from 'os';
-import * as crypto from 'crypto';
 import { setMethodsName } from './apiMethodsName';
 import { apiBaseEntityName } from './apiEntites';
+export const getIp = () => {
+  const networkInterfaces = os.networkInterfaces();
+
+  // Verificar si existe la interfaz 'Wi-Fi'
+  if (networkInterfaces['Wi-Fi']) {
+    if (networkInterfaces['Wi-Fi'].length > 1) {
+      return networkInterfaces['Wi-Fi'][1].address;
+    } else {
+      console.error("No hay suficientes direcciones IP en 'Wi-Fi'.");
+      return '0.0.0.0'; // Retorna un valor por defecto
+    }
+  }
+
+  // Verificar si existe la interfaz 'eth0' (común en contenedores Docker)
+  if (networkInterfaces['eth0']) {
+    if (networkInterfaces['eth0'].length > 0) {
+      return networkInterfaces['eth0'][0].address; // Usar la primera dirección en 'eth0'
+    } else {
+      console.error("No hay direcciones IP en 'eth0'.");
+      return '0.0.0.0'; // Retorna un valor por defecto
+    }
+  }
+
+  // Verificar si existe la interfaz 'lo' (loopback)
+  if (networkInterfaces['lo']) {
+    if (networkInterfaces['lo'].length > 0) {
+      return networkInterfaces['lo'][0].address;
+    } else {
+      console.error("No hay suficientes direcciones IP en 'lo'.");
+      return '0.0.0.0'; // Retorna un valor por defecto
+    }
+  }
+
+  console.error('No se encontró ninguna interfaz de red válida.');
+  return '0.0.0.0'; // Retorna un valor por defecto
+};
 const kafkaConfigFormat = {
   appUser: 'Brandon',
   apiName: 'Users',
-  microserviceName: 'Users',
   country: 'Ecuador',
   city: 'Quito',
-};
-
-const getLocalIP = (): string | undefined => {
-  const networkInterfaces = os.networkInterfaces();
-  for (const interfaceName in networkInterfaces) {
-    const networkInterface = networkInterfaces[interfaceName];
-    if (networkInterface) {
-      for (const iface of networkInterface) {
-        // Filtramos solo las direcciones IPv4 no internas (que no son loopback)
-        if (iface.family === 'IPv4' && !iface.internal) {
-          return iface.address;
-        }
-      }
-    }
-  }
-  return '192.168.681.131'; // IP por defecto si no se encuentra una dirección válida
+  ip: getIp(),
+  parentId: '',
+  referenceId: '',
+  method: {
+    get: 'GET',
+  },
 };
 
 export const messageCustom = (
@@ -32,36 +56,28 @@ export const messageCustom = (
   entity?: string,
   level?: string,
 ): CustomLog => {
-  let methodApi;
-  if (entity && method) {
-    methodApi = setMethodsName(method, entity);
-  } else {
-    methodApi = apiBaseEntityName;
-  }
-
   const currentTimestamp = new Date().toISOString();
+  const microserviceName = apiBaseEntityName ?? setMethodsName(method, entity);
   const startTime = Date.now(); // Tiempo de inicio en milisegundos
   const dataMessage: CustomLog = {
     timestamp: currentTimestamp,
     level: `[${level.toUpperCase()}]`,
     message: message,
     componentType: 'Backend',
-    ip: getLocalIP(), // Obtener la IP de la máquina local o una IP predeterminada
+    ip: kafkaConfigFormat.ip, // Obtener la IP de la máquina local o una IP predeterminada
     appUser: kafkaConfigFormat.appUser,
     channel: 'web',
     consumer: 'self service portal',
-    amdocs360product: 'gg',
     apiName: kafkaConfigFormat.apiName,
-    microserviceName: kafkaConfigFormat.microserviceName,
-    methodName: methodApi || 'Nombre del metodo ejecutado',
+    microserviceName: microserviceName,
+    methodName: method || kafkaConfigFormat.method.get,
     layer: 'Exposicion',
-    parentId: crypto.randomUUID(),
-    referenceId: crypto.randomUUID(),
     dateTimeTransacctionStart: currentTimestamp,
     dateTimeTransacctionFinish: currentTimestamp, // Por defecto el tiempo de finalización es el mismo que el inicio
-    executionTime: 'tomar el tiempo de ejecución',
     country: kafkaConfigFormat.country,
     city: kafkaConfigFormat.city,
+    parentId: kafkaConfigFormat.parentId,
+    referenceId: kafkaConfigFormat.referenceId,
   };
 
   const endTime = Date.now(); // Tiempo de finalización en milisegundos
@@ -69,7 +85,7 @@ export const messageCustom = (
 
   // Agregar tiempo de finalización y tiempo de ejecución
   dataMessage.dateTimeTransacctionFinish = new Date().toISOString();
-  dataMessage.executionTime = executionTime; // Tiempo en milisegundos
+  dataMessage.executionTime = `${executionTime}ms`; // Tiempo en milisegundos
 
   return dataMessage;
 };
@@ -96,23 +112,3 @@ interface CustomLog {
   city?: string;
   componentType?: string;
 }
-
-// const logEntry = {
-//   timestamp: new Date().toISOString(),
-//   componentType: 'Backend',
-//   ip: customLog.ip || '172.20.102.187', // Cambia la IP según sea necesario
-//   appUser: customLog.appUser || 'usrosbnewqabim',
-//   channel: customLog.channel || 'web',
-//   consumer: customLog.consumer || 'self service portal',
-//   apiName: customLog.apiName || 'Nombre del api',
-//   microserviceName: customLog.microserviceName || 'Nombre Microservicio',
-//   methodName: customLog.methodName || 'Nombre del metodo ejecutado',
-//   layer: customLog.layer || 'Exposicion',
-//   parentId: customLog.parentId || crypto.randomUUID(),
-//   referenceId: customLog.referenceId || crypto.randomUUID(),
-//   dateTimeTransacctionStart: customLog.dateTimeTransacctionStart || new Date().toISOString(),
-//   dateTimeTransacctionFinish: customLog.dateTimeTransacctionFinish || new Date().toISOString(),
-//   executionTime: customLog.executionTime || 'tomar el tiempo de ejecución',
-//   country: customLog.country || ',
-//   city: customLog.city || ',
-// };
