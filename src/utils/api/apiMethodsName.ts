@@ -1,7 +1,6 @@
 import { apiBaseEntityName } from './apiEntites';
 import { Validator } from './apiValidations';
 
-
 //En caso de tener una sola operacion
 export const apiMethodsName = {
   get: `Retrieves ${apiBaseEntityName}`,

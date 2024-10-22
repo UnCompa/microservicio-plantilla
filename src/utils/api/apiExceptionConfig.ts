@@ -14,7 +14,7 @@ export const apiExceptionConfig = {
       code: 'Not Found',
       message: `${apiBaseEntityName} not found`,
       timestamp: new Date().toISOString(),
-      service: setMethodsName("GET", apiBaseEntityName),
+      service: setMethodsName('GET', apiBaseEntityName),
     },
     routes: routesExceptions.notFound,
   },

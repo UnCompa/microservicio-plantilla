@@ -11,7 +11,6 @@ export class ExampleService {
     private logger: LoggerService, //Usando el logger simple (No usa kafka)
   ) {}
 
-  
   getHello(): string {
     return 'Hello world';
   }

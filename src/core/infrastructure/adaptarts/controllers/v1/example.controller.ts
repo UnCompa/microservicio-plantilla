@@ -14,7 +14,7 @@ export class ExampleController {
   //@ApiResponse(apiExceptionConfig.badRequest) Otros tipos de respuestas
   @Get()
   getMessage(): string {
-    return this.exampleService.getHello()
+    return this.exampleService.getHello();
   }
   //Tus rutas para el servicio
 }
