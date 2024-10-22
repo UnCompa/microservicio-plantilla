@@ -11,10 +11,21 @@ import { Validator } from 'src/utils/api/apiValidations';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
+import { ConfigService } from '@nestjs/config';
 
 @Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) {}
+  private logger: LoggerService | LoggerKafkaService; // Logger variable
+  constructor(
+    private readonly loggerService: LoggerService,
+    private readonly kafkaLoggerService: LoggerKafkaService,
+    private readonly configService: ConfigService, // Inyectar el ConfigService
+  ) {
+    // Decidir cuál logger usar basado en la variable de entorno
+    const useKafka = this.configService.get('USE_KAFKA') === 'true';
+    this.logger = useKafka ? this.kafkaLoggerService : this.loggerService;
+  }
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

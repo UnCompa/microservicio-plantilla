@@ -13,7 +13,7 @@ import { InternalServerErrorExceptionFilter } from './core/application/exception
 import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/serviceUnavailable.exception';
 import { UnauthorizedExceptionFilter } from './core/application/exceptions/unauthorized.exception';
 import { LoggerKafkaService } from './core/application/loggger/loggerKafka.service';
-
+import { ConfigService } from '@nestjs/config';
 async function bootstrap() {
   //Establecer logger e inicializar NEST
   const logger =
@@ -21,8 +21,14 @@ async function bootstrap() {
       ? new LoggerKafkaService()
       : new LoggerService();
   const app = await NestFactory.create(AppModule, {
-    logger: logger,
+    logger:
+      process.env.USE_KAFKA == 'true'
+        ? new LoggerKafkaService()
+        : new LoggerService(),
   });
+  const loggerService = new LoggerService();
+  const kafkaLoggerService = new LoggerKafkaService();
+  const configService = app.get(ConfigService);
   // Validaciones
   app.useGlobalPipes(new ValidationPipe());
   //Configurar el swaggwer
@@ -32,14 +38,30 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   app.useGlobalFilters(
-    new BadRequestExceptionFilter(logger),
-    new NotFoundExceptionFilter(logger),
-    new ConflictExceptionFilter(logger),
-    new ForbiddenExceptionFilter(logger),
-    new InternalServerErrorExceptionFilter(logger),
-    new ServiceUnavailableExceptionFilter(logger),
-    new UnauthorizedExceptionFilter(logger),
-    new MethodNotAllowedFilter(logger),
+    new BadRequestExceptionFilter(
+      loggerService,
+      kafkaLoggerService,
+      configService,
+    ),
+    new NotFoundExceptionFilter(
+      loggerService,
+      kafkaLoggerService,
+      configService,
+    ),
+    new ConflictExceptionFilter(
+      loggerService,
+      kafkaLoggerService,
+      configService,
+    ),
+    new ForbiddenExceptionFilter(loggerService),
+    new InternalServerErrorExceptionFilter(loggerService),
+    new ServiceUnavailableExceptionFilter(loggerService),
+    new UnauthorizedExceptionFilter(loggerService),
+    new MethodNotAllowedFilter(
+      loggerService,
+      kafkaLoggerService,
+      configService,
+    ),
   );
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);

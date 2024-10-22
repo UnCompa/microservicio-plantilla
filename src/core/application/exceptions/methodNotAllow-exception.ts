@@ -13,10 +13,21 @@ import { LoggerService } from '../loggger/logger.service';
 import { ValidationError } from 'class-validator';
 import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
+import { ConfigService } from '@nestjs/config';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
+  private logger: LoggerService | LoggerKafkaService; // Logger variable
+  constructor(
+    private readonly loggerService: LoggerService,
+    private readonly kafkaLoggerService: LoggerKafkaService,
+    private readonly configService: ConfigService, // Inyectar el ConfigService
+  ) {
+    // Decidir cuál logger usar basado en la variable de entorno
+    const useKafka = this.configService.get('USE_KAFKA') === 'true';
+    this.logger = useKafka ? this.kafkaLoggerService : this.loggerService;
+  }
 
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -58,13 +69,11 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       return this.handleMethodNotAllowed(response, path, entity, httpMethod);
     }
     let entityApi;
-    console.log(routeConfig.entity);
     if (routeConfig.entity) {
       entityApi = routeConfig.entity;
     } else {
       entityApi = entity;
     }
-    console.log(entityApi);
     // Si ocurre cualquier otra excepción, manejarla y enviar la respuesta
     const errorLogs = this.createErrorLog(
       exception,

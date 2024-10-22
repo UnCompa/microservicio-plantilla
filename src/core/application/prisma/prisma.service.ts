@@ -1,10 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientInitializationError } from '@prisma/client/runtime/library';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
+import { LoggerService } from '../loggger/logger.service';
 
 @Injectable()
 export class PrismaService extends PrismaClient {
-  private readonly logger = new Logger(PrismaService.name);
+  private readonly logger =
+    process.env.USE_KAFKA == 'true'
+      ? new LoggerKafkaService()
+      : new LoggerService();
   private readonly retryDelay = 5000; // Intentar reconectar cada 5 segundos
   public isConnected = false; // Variable para almacenar el estado de la conexión
 

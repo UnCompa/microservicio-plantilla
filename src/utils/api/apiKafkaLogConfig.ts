@@ -1,5 +1,6 @@
 import * as os from 'os';
 import { setMethodsName } from './apiMethodsName';
+import { apiBaseEntityName } from './apiEntites';
 
 export const getIp = () => {
   const networkInterfaces = os.networkInterfaces();
@@ -13,6 +14,9 @@ const kafkaConfigFormat = {
   ip: getIp(),
   parentId: '',
   referenceId: '',
+  method: {
+    get: 'GET',
+  },
 };
 
 export const messageCustom = (
@@ -22,6 +26,7 @@ export const messageCustom = (
   level?: string,
 ): CustomLog => {
   const currentTimestamp = new Date().toISOString();
+  const nose = apiBaseEntityName ?? setMethodsName(method, entity);
   const startTime = Date.now(); // Tiempo de inicio en milisegundos
   const dataMessage: CustomLog = {
     timestamp: currentTimestamp,
@@ -33,8 +38,8 @@ export const messageCustom = (
     channel: 'web',
     consumer: 'self service portal',
     apiName: kafkaConfigFormat.apiName,
-    microserviceName: setMethodsName(method, entity),
-    methodName: method || 'Nombre del metodo ejecutado',
+    microserviceName: nose,
+    methodName: method || kafkaConfigFormat.method.get,
     layer: 'Exposicion',
     dateTimeTransacctionStart: currentTimestamp,
     dateTimeTransacctionFinish: currentTimestamp, // Por defecto el tiempo de finalización es el mismo que el inicio

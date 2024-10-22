@@ -10,15 +10,15 @@ import { CreateUserDto } from '../dtos/create-user.dto';
 import { User } from 'src/core/domain/user.entity';
 import { SendData } from '../dtos/sendDataUser.dto';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
-//import { LoggerService } from '../loggger/logger.service';
+import { LoggerService } from '../loggger/logger.service';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
+//import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
-    private logger: LoggerKafkaService,
+    private logger: LoggerService,
   ) {}
 
   async create(data: CreateUserDto): Promise<object> {
@@ -78,7 +78,7 @@ export class UserService {
         );
       }
       return user;
-    } catch (error) {
+    } catch (e) {
       // Aquí puedes lanzar una excepción diferente si es necesario, pero asegurate de que sea NotFoundException
       throw new NotFoundException(
         `${apiBaseEntityName} not found for ID: ${id}`,

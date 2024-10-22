@@ -8,10 +8,21 @@ import { Response, Request } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
+import { LoggerKafkaService } from '../loggger/loggerKafka.service';
+import { ConfigService } from '@nestjs/config';
 
 @Catch(ConflictException)
 export class ConflictExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {}
+  private logger: LoggerService | LoggerKafkaService; // Logger variable
+  constructor(
+    private readonly loggerService: LoggerService,
+    private readonly kafkaLoggerService: LoggerKafkaService,
+    private readonly configService: ConfigService, // Inyectar el ConfigService
+  ) {
+    // Decidir cuál logger usar basado en la variable de entorno
+    const useKafka = this.configService.get('USE_KAFKA') === 'true';
+    this.logger = useKafka ? this.kafkaLoggerService : this.loggerService;
+  }
 
   catch(exception: ConflictException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

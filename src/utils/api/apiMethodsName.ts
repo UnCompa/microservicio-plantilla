@@ -25,9 +25,7 @@ export const setMethodsName = (
     | string,
   apiBaseEntityName: string,
 ): string => {
-  console.log(httpMethod);
   let method;
-  console.log(Validator.isUpperCase(httpMethod));
   if (Validator.isUpperCase(httpMethod)) {
     method = httpMethod.toUpperCase();
   } else {
