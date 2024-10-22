@@ -15,7 +15,7 @@ import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 export class BadRequestExceptionFilter implements ExceptionFilter {
   private readonly INVALID_JSON_MESSAGE = 'Invalid JSON structure';
 
-  constructor(private readonly logger: LoggerService) {
+  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
     if (process.env.USE_KAFKA) {
       this.logger = new LoggerKafkaService();
     }

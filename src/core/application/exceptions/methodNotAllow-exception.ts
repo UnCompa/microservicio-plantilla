@@ -17,7 +17,7 @@ import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(HttpException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {
+  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
     if (process.env.USE_KAFKA) {
       this.logger = new LoggerKafkaService();
     }
@@ -77,7 +77,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       customMessage,
       validationErrors,
     );
-    this.logger.error(JSON.stringify(errorLogs));
+    this.logger.error(JSON.stringify(errorLogs), httpMethod, entity);
     return response.status(status).json(errorLogs);
   }
 
@@ -117,7 +117,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         setMethodsName(response.status.toString(), entity) ??
         this.getEntityFromMethod(httpMethod),
     };
-    this.logger.error(JSON.stringify(errorResponse));
+    this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
     response.status(HttpStatus.NOT_FOUND).json(errorResponse);
   }
 
@@ -136,7 +136,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         setMethodsName(response.status.toString(), entity) ??
         this.getEntityFromMethod(httpMethod),
     };
-    this.logger.error(JSON.stringify(errorResponse));
+    this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
     response.status(HttpStatus.METHOD_NOT_ALLOWED).json(errorResponse);
   }
 
