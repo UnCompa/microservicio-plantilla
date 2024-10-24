@@ -29,8 +29,10 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
-    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
+    console.log(routeConfig);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
+    console.log(entity);
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
@@ -73,7 +75,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       status,
       httpMethod,
       path,
-      entityApi,
+      setMethodsName(httpMethod.toLowerCase(), entityApi),
       customMessage,
       validationErrors,
     );
@@ -111,10 +113,10 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   ) {
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
-      message: `Route ${path} not found`,
+      message: `Route ${path} not found :c`,
       timestamp: new Date().toISOString(),
       service:
-        setMethodsName(response.status.toString(), entity) ??
+        setMethodsName(httpMethod, entity) ??
         this.getEntityFromMethod(httpMethod),
     };
     this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
@@ -133,7 +135,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       message: `Method not allowed for path: ${path}`,
       timestamp: new Date().toISOString(),
       service:
-        setMethodsName(response.status.toString(), entity) ??
+        setMethodsName(httpMethod, entity) ??
         this.getEntityFromMethod(httpMethod),
     };
     this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
@@ -206,10 +208,33 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       method: httpMethod,
       path: url,
     };
-    return (
-      apiExceptionConfig.notFound.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
-      ) || defaultRouteConfig
-    );
+    const cleanPath = (path: string) => path.replace(/\.$/, '');
+    let configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+      const cleanedRoutePath = cleanPath(route.path);
+      const cleanedUrl = cleanPath(url);
+      if (!cleanedUrl.startsWith(cleanedRoutePath)) {
+        const idsUrl = cleanedRoutePath.split(':')[0];
+        return route.method === httpMethod && cleanedUrl.startsWith(idsUrl);
+      }
+      return (
+        route.method === httpMethod && cleanedUrl.startsWith(cleanedRoutePath)
+      );
+    });
+    if (configRoute === undefined) {
+      configRoute = apiExceptionConfig.methodNotAllowed.routes.find((route) => {
+        const cleanedRoutePath = cleanPath(route.path);
+        const cleanedUrl = cleanPath(url);
+        if (!cleanedUrl.startsWith(cleanedRoutePath)) {
+          const idsUrl = cleanedRoutePath.split(':')[0];
+          return cleanedUrl.startsWith(idsUrl);
+        }
+        return cleanedUrl.startsWith(cleanedRoutePath);
+      });
+      if (configRoute !== undefined && configRoute.method !== httpMethod) {
+        configRoute.method = httpMethod;
+      }
+    }
+    console.log(configRoute);
+    return configRoute || defaultRouteConfig;
   }
 }
