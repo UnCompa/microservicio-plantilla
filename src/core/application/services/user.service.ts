@@ -1,8 +1,10 @@
 import {
   BadRequestException,
   ConflictException,
+  HttpException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateUserDto } from '../dtos/updateUser.dto';
@@ -13,14 +15,67 @@ import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { LoggerService } from '../loggger/logger.service';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 //import { LoggerKafkaService } from '../loggger/loggerKafka.service';
-
+import { HttpService } from '@nestjs/axios'
+import { catchError, firstValueFrom } from 'rxjs';
+import { AxiosError } from 'axios';
 @Injectable()
 export class UserService {
   constructor(
     private prisma: PrismaService,
+    private http:  HttpService,
     private logger: LoggerService,
   ) {}
 
+  async register(data: any, token: string) {
+    console.log(token);
+    const url = 'http://localhost:8080/admin/realms/MICHIMONEY/users';
+    try {
+      const res = await firstValueFrom(
+        this.http.post(url, data, {headers: {Authorization: token}}).pipe(
+          catchError((error: any) => {
+            console.log(error.response.data);
+            if (error.response.data.error) {
+              throw new UnauthorizedException('No autorizado, token invalido')
+            } 
+            throw new ConflictException('Error: ' + JSON.stringify(error.response.data));
+          })
+        )
+      );
+      
+      console.log(res.data); // Asegúrate de que la respuesta sea lo que esperas.
+      return res.data;  // Puedes retornar lo que obtienes de la respuesta
+    } catch (error) {
+      console.error('Error in register:', error);
+      throw error;
+    }
+  }
+  async login(data: any, token: string) {
+    console.log(token);
+    const url = 'http://localhost:8080/realms/MICHIMONEY/protocol/openid-connect/token';
+    const params = new URLSearchParams();
+    params.append('client_secret', 'cWBFSs49Zp5cSOdvTv25KMLgYIQgXJIF');
+    params.append('grant_type', 'password');
+    params.append('client_id', 'mi-app');
+    params.append('scope', 'openid');
+    params.append('username', data.username);
+    params.append('password', data.password);
+    try {
+      const res = await firstValueFrom(
+        this.http.post(url, params).pipe(
+          catchError((error: any) => {
+            console.log(error.response.data);
+            throw new ConflictException('Error: ' + JSON.stringify(error.response.data));
+          })
+        )
+      );
+      
+      console.log(res.data); // Asegúrate de que la respuesta sea lo que esperas.
+      return res.data;  // Puedes retornar lo que obtienes de la respuesta
+    } catch (error) {
+      console.error('Error in register:', error);
+      throw error;
+    }
+  }
   async create(data: CreateUserDto): Promise<object> {
     const userExists = await this.prisma.users.findMany({
       where: { email: data.email },

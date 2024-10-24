@@ -30,9 +30,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
     const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
-    console.log(routeConfig);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
-    console.log(entity);
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
@@ -234,7 +232,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         configRoute.method = httpMethod;
       }
     }
-    console.log(configRoute);
     return configRoute || defaultRouteConfig;
   }
 }

@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  Headers,
   HttpCode,
   Param,
   Post,
@@ -20,6 +21,7 @@ import { UserService } from 'src/core/application/services/user.service';
 import { CheckDatabaseConnectionGuard } from 'src/core/application/decorators/checkDatabase.decorator';
 import { User } from 'src/core/domain/user.entity';
 import { Validator } from 'src/utils/api/apiValidations';
+import { AuthGuard } from 'src/core/guards/auth.guard';
 
 @ApiTags('/msa/users')
 @Controller()
@@ -35,14 +37,24 @@ export class UserController {
   async createUser(@Body() data: CreateUserDto): Promise<object> {
     return this.userService.create(data);
   }
-
+  @UseGuards(AuthGuard)
   @Get('/msa/users/1.0')
   async getAllUsers(@Query() params): Promise<SendData | User[]> {
     const { limit, page } = params;
     return this.userService.findAll(limit, page);
   }
+  @Post('/msa/users/register/1.0')
+  async registerUser(@Body() data , @Headers() headers ): Promise<string> {
+    const { authorization } = headers
+    return this.userService.register(data, authorization);
+  }
+  @Post('/msa/users/login/1.0')
+  async loginUser(@Body() data , @Headers() headers ): Promise<string> {
+    const { authorization } = headers
+    return this.userService.login(data, authorization);
+  }
 
-  @Get('/msa/users/1.0/:id_user')
+  @Get('/msa/users/1.0/:id')
   async getOneUser(@Param('id_user') id: string): Promise<User> {
     if (!Validator.isValidUUID(id)) {
       throw new BadRequestException('The "id" parameter must be a valid UUID.');
