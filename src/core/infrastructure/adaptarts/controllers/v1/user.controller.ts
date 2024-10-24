@@ -22,7 +22,7 @@ import { User } from 'src/core/domain/user.entity';
 import { Validator } from 'src/utils/api/apiValidations';
 
 @ApiTags('/msa/users')
-@Controller('/msa/users')
+@Controller()
 @UseGuards(CheckDatabaseConnectionGuard)
 //@UseFilters(AllExceptionsFilter)
 export class UserController {
@@ -30,26 +30,26 @@ export class UserController {
     private userService: UserService,
     private prismaService: PrismaService,
   ) {}
-  @Post('1.0')
+  @Post('/msa/users/1.0')
   @HttpCode(201)
   async createUser(@Body() data: CreateUserDto): Promise<object> {
     return this.userService.create(data);
   }
 
-  @Get('1.0')
+  @Get('/msa/users/1.0')
   async getAllUsers(@Query() params): Promise<SendData | User[]> {
     const { limit, page } = params;
     return this.userService.findAll(limit, page);
   }
 
-  @Get('1.0/:id')
-  async getOneUser(@Param('id') id: string): Promise<User> {
+  @Get('/msa/users/1.0/:id_user')
+  async getOneUser(@Param('id_user') id: string): Promise<User> {
     if (!Validator.isValidUUID(id)) {
       throw new BadRequestException('The "id" parameter must be a valid UUID.');
     }
     return this.userService.findOne(id);
   }
-  @Get('2.0/:id')
+  @Get('/msa/users/2.0/:id')
   async getOneProducts(@Param('id') id: string): Promise<User> {
     if (!Validator.isValidUUID(id)) {
       throw new BadRequestException('The "id" parameter must be a valid UUID.');
@@ -57,7 +57,7 @@ export class UserController {
     return this.userService.findOne(id);
   }
 
-  @Put('1.0/:id')
+  @Put('/msa/users/1.0/:id')
   async updateUser(
     @Param('id') id: string,
     @Body() data: UpdateUserDto,
@@ -68,7 +68,7 @@ export class UserController {
     return this.userService.update(id, data);
   }
 
-  @Delete('1.0/:id')
+  @Delete('/msa/users/1.0/:id')
   async deleteUser(@Param('id') id: string): Promise<User> {
     if (!Validator.isValidUUID(id)) {
       throw new BadRequestException('The "id" parameter must be a valid UUID.');

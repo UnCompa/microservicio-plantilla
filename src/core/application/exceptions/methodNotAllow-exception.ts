@@ -29,7 +29,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const httpMethod = request.method.toLowerCase(); // Obtener el método HTTP
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
-    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
     let customMessage =
       exception.message ||
@@ -111,10 +111,10 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   ) {
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
-      message: `Route ${path} not found`,
+      message: `Route ${path} not found :c`,
       timestamp: new Date().toISOString(),
       service:
-        setMethodsName(response.status.toString(), entity) ??
+        setMethodsName(httpMethod, entity) ??
         this.getEntityFromMethod(httpMethod),
     };
     this.logger.error(JSON.stringify(errorResponse), httpMethod, entity);
@@ -206,10 +206,14 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       method: httpMethod,
       path: url,
     };
-    return (
-      apiExceptionConfig.notFound.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
-      ) || defaultRouteConfig
-    );
+    const cleanPath = (path: string) => path.replace(/\.$/, '');
+    const configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+      const cleanedRoutePath = cleanPath(route.path);
+      const cleanedUrl = cleanPath(url);
+      return (
+        route.method === httpMethod && cleanedRoutePath.startsWith(cleanedUrl)
+      );
+    });
+    return configRoute || defaultRouteConfig;
   }
 }
