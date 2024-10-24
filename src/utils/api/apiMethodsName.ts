@@ -11,6 +11,13 @@ export const apiMethodsName = {
   options: `Options ${apiBaseEntityName}`,
   '000': `Exito ${apiBaseEntityName}`,
 };
+export enum methodStrings {
+  Retrieves = 'Retrieves',
+  Save = 'Save',
+  Update = 'Update',
+  Remove = 'Remove',
+  Exito = 'Exito',
+}
 export const setMethodsName = (
   httpMethod:
     | 'GET'
@@ -22,16 +29,28 @@ export const setMethodsName = (
     | 'post'
     | 'put'
     | 'delete'
+    | 'service'
     | string,
   apiBaseEntityName: string,
 ): string => {
   let method;
+  // Aseguramos que el método HTTP esté en mayúsculas
   if (Validator.isUpperCase(httpMethod)) {
     method = httpMethod.toUpperCase();
   } else {
     method = httpMethod;
   }
 
+  // Convertimos el enum a un array y verificamos si algún valor está incluido en apiBaseEntityName
+  if (
+    Object.values(methodStrings).some((methodStr) =>
+      apiBaseEntityName.includes(methodStr),
+    )
+  ) {
+    return apiBaseEntityName;
+  }
+
+  // Lógica del switch para determinar el nombre del método
   switch (method) {
     case 'GET':
       return `Retrieves ${apiBaseEntityName}`;
@@ -42,6 +61,16 @@ export const setMethodsName = (
     case 'DELETE':
       return `Remove ${apiBaseEntityName}`;
     case 'SERVICE':
+      return `Exito ${apiBaseEntityName}`;
+    case 'get':
+      return `Retrieves ${apiBaseEntityName}`;
+    case 'post':
+      return `Save ${apiBaseEntityName}`;
+    case 'put':
+      return `Update ${apiBaseEntityName}`;
+    case 'delete':
+      return `Remove ${apiBaseEntityName}`;
+    case 'service':
       return `Exito ${apiBaseEntityName}`;
     default:
       return `Unknown method for ${apiBaseEntityName}`;

@@ -76,7 +76,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     httpMethod: string,
   ) {
     const validationErrors = this.extractValidationErrors(exception);
-    const routeConfig = this.getRouteConfig(httpMethod, request.url);
+    const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
     const errorLogs = this.createErrorLog(
       exception,
@@ -133,16 +133,19 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
 
   private getRouteConfig(httpMethod: string, url: string) {
     const defaultRouteConfig = {
-      entity: this.getEntityFromMethod(httpMethod),
+      entity: this.getEntityFromMethod(httpMethod), // Usar getEntityFromMethod como valor por defecto
       method: httpMethod,
       path: url,
     };
-
-    return (
-      apiExceptionConfig.badRequest.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
-      ) || defaultRouteConfig
-    );
+    const cleanPath = (path: string) => path.replace(/\.$/, '');
+    const configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+      const cleanedRoutePath = cleanPath(route.path);
+      const cleanedUrl = cleanPath(url);
+      return (
+        route.method === httpMethod && cleanedRoutePath.startsWith(cleanedUrl)
+      );
+    });
+    return configRoute || defaultRouteConfig;
   }
 
   private getEntityFromMethod(httpMethod: string) {

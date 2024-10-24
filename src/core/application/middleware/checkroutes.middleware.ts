@@ -19,11 +19,9 @@ export class PathMethodMiddleware implements NestMiddleware {
       (allowedPaths) =>
         allowedPaths.some((allowedPath) => {
           const matcher = match(allowedPath, { decode: decodeURIComponent });
-          console.log(allowedPath);
           return matcher(path); // Verifica si la ruta coincide con cualquier ruta definida
         }),
     );
-    console.log('RUTA: ' + isRouteDefined);
     if (!isRouteDefined) {
       // Si la ruta no está definida para ningún método, devolvemos un 404
       throw new BadRequestException(`Route ${path} not found`);
