@@ -5,6 +5,7 @@ import {
   ArgumentsHost,
   HttpStatus,
   BadRequestException,
+  MethodNotAllowedException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { match } from 'path-to-regexp';
@@ -15,7 +16,7 @@ import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
-@Catch(HttpException)
+@Catch(MethodNotAllowedException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
   constructor(private readonly logger: LoggerService | LoggerKafkaService) {
     if (process.env.USE_KAFKA) {

@@ -27,10 +27,12 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const httpMethod = request.method;
-
     // Verificar si es un error de JSON mal formado
     const isJsonError = this.isJsonSyntaxError(exception);
-
+    let customMessage = exception.message;
+    if (exception.message.includes('Bad Request')) {
+      customMessage = apiExceptionConfig.badRequest.message;
+    }
     // Manejo de los errores
     if (isJsonError) {
       this.handleJsonError(exception, response, status, request);
@@ -41,6 +43,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
         status,
         request,
         httpMethod,
+        customMessage,
       );
     }
   }
@@ -74,6 +77,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     status: number,
     request: Request,
     httpMethod: string,
+    customMessage,
   ) {
     const validationErrors = this.extractValidationErrors(exception);
     const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
@@ -84,6 +88,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
       httpMethod,
       entity,
       validationErrors,
+      customMessage,
     );
     this.logger.error('Validation Error' + JSON.stringify(errorLogs));
     response.status(status).json(errorLogs);
@@ -160,10 +165,11 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     httpMethod: string,
     entity: string,
     groupedErrors: Record<string, string[]>,
+    message: string,
   ) {
     return {
-      code: apiExceptionConfig.badRequest.code,
-      message: apiExceptionConfig.badRequest.message,
+      code: status ?? apiExceptionConfig.badRequest.code,
+      message: message,
       timestamp: new Date().toISOString(),
       service: apiMethods(httpMethod, entity),
       validationErrors: groupedErrors,
