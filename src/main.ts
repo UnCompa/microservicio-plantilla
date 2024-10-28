@@ -13,6 +13,7 @@ import { InternalServerErrorExceptionFilter } from './core/application/exception
 import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/serviceUnavailable.exception';
 import { UnauthorizedExceptionFilter } from './core/application/exceptions/unauthorized.exception';
 import { LoggerKafkaService } from './core/application/loggger/loggerKafka.service';
+import { HttpExceptionFilter } from './core/application/exceptions/httpException.exception';
 async function bootstrap() {
   //Establecer logger e inicializar NEST
   const logger =
@@ -32,6 +33,7 @@ async function bootstrap() {
     .setVersion('1.0')
     .build();
   app.useGlobalFilters(
+    new HttpExceptionFilter(),
     new BadRequestExceptionFilter(loggerService),
     new NotFoundExceptionFilter(loggerService),
     new ConflictExceptionFilter(loggerService),
