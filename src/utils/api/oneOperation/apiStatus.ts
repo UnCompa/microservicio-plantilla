@@ -1,6 +1,6 @@
 import { ErrorDto } from 'src/core/application/dtos/error.dto';
-import { apiBaseEntityName } from './apiEntites';
-import { apiMethodsName, setMethodsName } from './apiMethodsName';
+import { apiBaseEntityName } from '../apiEntites';
+import { apiMethodsName, setMethodsName } from '../apiMethodsName';
 import { ResponseDto } from 'src/core/application/dtos/response.dto';
 
 export const sendEntity = [
