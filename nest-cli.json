@@ -4,6 +4,15 @@
   "sourceRoot": "src",
   "compilerOptions": {
     "deleteOutDir": true,
-    "plugins": ["@nestjs/swagger"]
+    "plugins": [
+      "@nestjs/swagger"
+    ],
+    "assets": [
+      {
+        "include": "core/infrastructure/i18n/**/*",
+        "outDir": "dist",
+        "watchAssets": true
+      }
+    ]
   }
 }

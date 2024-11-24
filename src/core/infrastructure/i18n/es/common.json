@@ -1,0 +1,7 @@
+{
+  "USER_CREATED_SUCCESS": "Usuario creado exitosamente",
+  "EMAIL_IN_USE": "El correo ya está en uso: {email}",
+  "USER_NOT_FOUND": "Usuario no encontrado con el ID: {{id}}",
+  "INVALID_UUID": "El parámetro 'id' debe ser un UUID válido.",
+  "HELLO": "Hola"
+}

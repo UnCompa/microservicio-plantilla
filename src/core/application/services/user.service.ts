@@ -4,49 +4,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service';
-import { UpdateUserDto } from '../dtos/updateUser.dto';
-import { CreateUserDto } from '../dtos/create-user.dto';
+import { I18nService } from 'nestjs-i18n';
 import { User } from 'src/core/domain/user.entity';
+import { CreateUserDto } from '../dtos/create-user.dto';
 import { SendData } from '../dtos/sendDataUser.dto';
-import { apiBaseEntityName } from 'src/utils/api/apiEntites';
+import { UpdateUserDto } from '../dtos/updateUser.dto';
 import { LoggerService } from '../loggger/logger.service';
-import { hanleResponseOk } from 'src/utils/api/apiResponseHandle';
+import { PrismaService } from '../prisma/prisma.service';
 //import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Injectable()
 export class UserService {
-  constructor(private prisma: PrismaService, private logger: LoggerService) {}
-
-  async create(data: CreateUserDto): Promise<object> {
-    const userExists = await this.prisma.users.findMany({
-      where: { email: data.email },
-    });
-    if (userExists.length > 0) {
-      this.logger.error('Email is already in use: ' + data.email);
-      throw new ConflictException('Email is already in use: ' + data.email);
-    }
-    try {
-      const users = await this.prisma.users.create({
-        data: {
-          name: data.name,
-          email: data.email,
-        },
-      });
-      this.logger.log(
-        `${apiBaseEntityName} successfully created: ${JSON.stringify(users)}`,
-      );
-      return hanleResponseOk(
-        { useId: users.id },
-        'User created successfully',
-        201,
-      );
-    } catch (error) {
-      this.logger.error(`Error creating user: ${error.message}`);
-      throw new BadRequestException('Error creating user');
-    }
-  }
-
+  constructor(private prisma: PrismaService, private logger: LoggerService, private i18n: I18nService) {}
   async findAll(limit: string, page: string): Promise<SendData | User[]> {
     const total = await this.prisma.users.count();
     const pageQuery = limit && page ? page : (page = '1');
@@ -70,22 +39,43 @@ export class UserService {
     }
   }
 
-  async findOne(id: string): Promise<User> {
-    try {
-      const user = await this.prisma.users.findUnique({ where: { id: id } });
-      if (user === null) {
-        throw new NotFoundException(
-          `${apiBaseEntityName} not found for ID: ${id}`,
-        );
-      }
-      return user;
-    } catch (e) {
-      this.logger.error(e);
-      // Aquí puedes lanzar una excepción diferente si es necesario, pero asegurate de que sea NotFoundException
-      throw new NotFoundException(
-        `${apiBaseEntityName} not found for ID: ${id}`,
-      );
+  async create(data: CreateUserDto): Promise<object> {
+    const userExists = await this.prisma.users.findMany({
+      where: { email: data.email },
+    });
+    if (userExists.length > 0) {
+      const errorMessage = await this.i18n.translate('common.EMAIL_IN_USE', {
+        args: { email: data.email }, // Asegúrate de que "email" es la clave en el archivo de traducción
+      });
+      console.log(errorMessage);
+      
+      throw new ConflictException(errorMessage);
     }
+    try {
+      const users = await this.prisma.users.create({
+        data: {
+          name: data.name,
+          email: data.email,
+        },
+      });
+      const successMessage = await this.i18n.translate(
+        'common.USER_CREATED_SUCCESS',
+      );
+      return { message: successMessage, userId: users.id };
+    } catch (error) {
+      throw new BadRequestException('Error creating user');
+    }
+  }
+
+  async findOne(id: string): Promise<User> {
+    const user = await this.prisma.users.findUnique({ where: { id } });
+    if (!user) {
+      const errorMessage = await this.i18n.translate('common.USER_NOT_FOUND', {
+        args: { id },
+      });
+      throw new NotFoundException(errorMessage);
+    }
+    return user;
   }
 
   async update(id: string, data: UpdateUserDto): Promise<User> {

@@ -38,6 +38,7 @@
     "helmet": "^8.0.0",
     "joi": "^17.13.3",
     "kafka-logger-mm": "^1.0.11",
+    "nestjs-i18n": "^10.5.0",
     "path-to-regexp": "8.2.0",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
