@@ -15,7 +15,7 @@ model document_type {
 }
 
 model users {
-  id        String   @id @default(uuid()) @db.Uuid
+  id        String   @id @db.Uuid @default(uuid())
   name      String
   email     String   @unique
   createdAt DateTime @default(now())

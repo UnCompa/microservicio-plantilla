@@ -1,4 +1,8 @@
 node_modules
 dist
+*.log
+*.md
 .git
-pnpm-lock.yaml
+*.ts
+logs
+test

@@ -8,16 +8,10 @@ import { Response, Request } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(ForbiddenException)
 export class ForbiddenExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
-
+  constructor(private logger: LoggerService) { }
   catch(exception: ForbiddenException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();

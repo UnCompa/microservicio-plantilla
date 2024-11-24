@@ -1,7 +1,7 @@
 import {
   Injectable,
   NestMiddleware,
-  BadRequestException,
+  NotFoundException,
   MethodNotAllowedException,
 } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
@@ -24,7 +24,7 @@ export class PathMethodMiddleware implements NestMiddleware {
     );
     if (!isRouteDefined) {
       // Si la ruta no está definida para ningún método, devolvemos un 404
-      throw new BadRequestException(`Route ${path} not found`);
+      throw new NotFoundException(`Route ${path} not found`);
     }
 
     // Si la ruta está definida, verificamos si el método está permitido

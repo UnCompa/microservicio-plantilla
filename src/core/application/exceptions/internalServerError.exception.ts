@@ -8,15 +8,10 @@ import { Response, Request } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig'; // Asegúrate de que la ruta sea correcta
 import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(InternalServerErrorException)
 export class InternalServerErrorExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
+  constructor(private logger: LoggerService) { }
 
   catch(exception: InternalServerErrorException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

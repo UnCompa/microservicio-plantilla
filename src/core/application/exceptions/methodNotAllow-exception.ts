@@ -5,6 +5,7 @@ import {
   ArgumentsHost,
   HttpStatus,
   BadRequestException,
+  MethodNotAllowedException,
 } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { match } from 'path-to-regexp';
@@ -13,16 +14,10 @@ import { LoggerService } from '../loggger/logger.service';
 import { ValidationError } from 'class-validator';
 import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
-
-@Catch(HttpException)
+@Catch(MethodNotAllowedException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
-  catch(exception: HttpException, host: ArgumentsHost) {
+  constructor(private readonly logger: LoggerService) { }
+  catch(exception: MethodNotAllowedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
     const request = ctx.getRequest<Request>();
@@ -30,9 +25,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
     const status = exception.getStatus();
     const path = request.originalUrl; // Obtener el path solicitado
     const routeConfig = this.getRouteConfig(httpMethod, request.originalUrl);
-    console.log(routeConfig);
     const entity = routeConfig.entity || this.getEntityFromMethod(httpMethod);
-    console.log(entity);
     let customMessage =
       exception.message ||
       `An error occurred with the ${httpMethod.toUpperCase()} method for path: ${path}`;
@@ -113,7 +106,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   ) {
     const errorResponse = {
       code: HttpStatus.NOT_FOUND,
-      message: `Route ${path} not found :c`,
+      message: `Route ${path} not found`,
       timestamp: new Date().toISOString(),
       service:
         setMethodsName(httpMethod, entity) ??
@@ -158,8 +151,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         code: status,
         message: message,
         timestamp: new Date().toISOString(),
+        service: method,
         path,
-        method: method,
         groupedErrors: groupedErrors,
       };
     } else {
@@ -234,7 +227,6 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
         configRoute.method = httpMethod;
       }
     }
-    console.log(configRoute);
     return configRoute || defaultRouteConfig;
   }
 }

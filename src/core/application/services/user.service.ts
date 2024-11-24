@@ -19,7 +19,7 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     private logger: LoggerService,
-  ) {}
+  ) { }
 
   async create(data: CreateUserDto): Promise<object> {
     const userExists = await this.prisma.users.findMany({
@@ -34,6 +34,7 @@ export class UserService {
         data: {
           name: data.name,
           email: data.email,
+
         },
       });
       this.logger.log(

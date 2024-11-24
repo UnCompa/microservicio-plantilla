@@ -8,15 +8,10 @@ import { Response } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(ServiceUnavailableException)
 export class ServiceUnavailableExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
+  constructor(private logger: LoggerService) { }
 
   catch(exception: ServiceUnavailableException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

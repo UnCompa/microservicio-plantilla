@@ -1,10 +1,12 @@
 import { apiBaseEntityName } from './apiEntites';
-import { apiMethodsName } from './apiMethodsName';
+import { apiMethodsName, setMethodsName } from './apiMethodsName';
 import { routesExceptions } from './apiRoutesExceptions';
+
+//Para usarlo en el swagger
 
 export const apiExceptionConfig = {
   notFound: {
-    code: 'Not Found',
+    code: '404',
     message: `${apiBaseEntityName} not found`,
     timestamp: new Date().toISOString(),
     service: apiMethodsName.get,
@@ -12,13 +14,13 @@ export const apiExceptionConfig = {
       code: 'Not Found',
       message: `${apiBaseEntityName} not found`,
       timestamp: new Date().toISOString(),
-      service: apiMethodsName.get,
+      service: setMethodsName('GET', apiBaseEntityName),
     },
     routes: routesExceptions.notFound,
   },
   badRequest: {
-    code: 'Bad Request',
-    message: 'Bad request due to invalid syntax or parameters',
+    code: '400',
+    message: 'Bad request in the params',
     timestamp: new Date().toISOString(),
     service: 'User Service',
     example: {
@@ -30,7 +32,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.badRequest,
   },
   methodNotAllowed: {
-    code: 'Method Not Allowed',
+    code: '405',
     message: 'Method Not Allowed',
     timestamp: new Date().toISOString(),
     service: 'User Service',
@@ -43,7 +45,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.methodNotAllowed ?? [],
   },
   unauthorized: {
-    code: 'Unauthorized',
+    code: '401',
     message: 'Authentication is required and has failed or not been provided',
     timestamp: new Date().toISOString(),
     service: 'User Service',
@@ -56,7 +58,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.unauthorized ?? [],
   },
   forbidden: {
-    code: 'Forbidden',
+    code: '403',
     message: 'Access to the resource is forbidden',
     timestamp: new Date().toISOString(),
     service: 'User Service',
@@ -69,7 +71,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.forbidden ?? [],
   },
   conflict: {
-    code: 'Conflicting',
+    code: '409',
     message: 'A conflict occurred due to duplicate data or conflicting state',
     timestamp: new Date().toISOString(),
     service: 'User Service',
@@ -82,7 +84,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.badRequest,
   },
   internalServerError: {
-    code: 'Internal Server Error',
+    code: '500',
     message: 'Internal server error occurred while processing the request',
     timestamp: new Date().toISOString(),
     service: 'User Service',
@@ -95,7 +97,7 @@ export const apiExceptionConfig = {
     routes: routesExceptions.internalServerError,
   },
   serviceUnavailable: {
-    code: 'Unavailable',
+    code: '503',
     message: 'Service is currently unavailable',
     timestamp: new Date().toISOString(),
     service: 'User Service',

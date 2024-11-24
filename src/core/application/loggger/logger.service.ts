@@ -1,115 +1,121 @@
-// logger.service.ts
-import { Injectable } from '@nestjs/common';
+import { Injectable, Scope } from '@nestjs/common';
 import { Logger, createLogger, format, transports } from 'winston';
 import 'winston-daily-rotate-file';
 
-@Injectable()
+@Injectable({ scope: Scope.TRANSIENT })
 export class LoggerService {
-  private loggerInfo: Logger;
-  private loggerError: Logger;
-  private loggerDebug: Logger;
-  private loggerAll: Logger;
+  private readonly logger: Logger;
+  private readonly levelLogger: string;
 
   constructor() {
-    // Inicializamos el KafkaLogger con el broker y el tópico deseado
-    this.createLoggers(); // Creamos los loggers de Winston
+    this.levelLogger = process.env.LOG_LEVEL ?? 'debug'; // Establece el nivel del log desde el entorno.
+    this.logger = this.createLogger();
   }
 
-  createLoggers() {
-    const textFormat = format.combine(
-      format.printf((log) => {
-        return `${log.timestamp} - [${log.level.toUpperCase()}] ${log.message}`;
-      }),
-    );
-    const dateFormat = format.timestamp({
-      format: 'YYYY-MM-DD HH:mm:ss',
-    });
+  private createLogger(): Logger {
+    const syslogColors = {
+      debug: 'rainbow',
+      info: 'green',
+      notice: 'white',
+      warning: 'yellow',
+      error: 'red',
+      crit: 'inverse yellow',
+      alert: 'bold inverse red',
+      emerg: 'bold inverse magenta',
+    };
 
-    // Logger para mensajes de info
-    this.loggerInfo = createLogger({
-      level: 'info',
-      format: format.combine(dateFormat, textFormat),
+    const logFormat = format.combine(
+      format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+      format.printf((info) =>
+        typeof info.message === 'string'
+          ? `${info.timestamp} - [${info.level.toUpperCase()}] ${info.context || 'APP'}: ${info.message}`
+          : `${info.timestamp} - [${info.level.toUpperCase()}] ${info.context || 'APP'}: ${JSON.stringify(info.message)}`,
+      ),
+    );
+
+    return createLogger({
+      level: this.levelLogger,
       transports: [
+        // Transporte para logs de nivel "info"
         new transports.DailyRotateFile({
           filename: 'logs/info/info-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
+          level: 'info', // Solo captura logs de nivel "info"
           maxSize: '20m',
           maxFiles: '14d',
         }),
-      ],
-    });
-
-    // Logger para mensajes de error
-    this.loggerError = createLogger({
-      level: 'error',
-      format: format.combine(dateFormat, textFormat),
-      transports: [
+        // Transporte para logs de nivel "error"
         new transports.DailyRotateFile({
           filename: 'logs/error/error-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
+          level: 'error', // Solo captura logs de nivel "error"
           maxSize: '20m',
           maxFiles: '14d',
         }),
-      ],
-    });
-
-    // Logger loggerDebug mensajes de advertencia
-    this.loggerDebug = createLogger({
-      level: 'debug',
-      format: format.combine(dateFormat, textFormat),
-      transports: [
+        // Transporte para logs de nivel "debug"
         new transports.DailyRotateFile({
           filename: 'logs/debug/debug-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
+          level: 'debug', // Solo captura logs de nivel "debug"
           maxSize: '20m',
           maxFiles: '14d',
         }),
-      ],
-    });
-
-    // Logger para todos los mensajes
-    this.loggerAll = createLogger({
-      format: format.combine(dateFormat, textFormat),
-      transports: [
+        // Transporte para todos los logs en una carpeta "all"
         new transports.DailyRotateFile({
           filename: 'logs/all/all-%DATE%.log',
           datePattern: 'YYYY-MM-DD',
           maxSize: '20m',
           maxFiles: '14d',
         }),
-        new transports.Console(), // También imprimimos en consola
+        // Transporte para imprimir en consola
+        new transports.Console({
+          format: format.combine(
+            logFormat,
+            format.colorize({ all: true, colors: syslogColors }),
+          ),
+        }),
       ],
     });
   }
-  async log(message: string) {
-    const levelLogger = process.env.LOG_LEVEL ?? 'debug';
-    if (levelLogger === 'info') {
-      this.loggerInfo.info(message);
-    }
-    if (levelLogger === 'debug' || levelLogger === 'info') {
-      this.loggerAll.info(message);
+
+  private isLevelEnabled(level: string): boolean {
+    const levels = ['debug', 'info', 'warn', 'error'];
+    const currentIndex = levels.indexOf(this.levelLogger);
+    const targetIndex = levels.indexOf(level);
+    return targetIndex >= currentIndex;
+  }
+
+  private formatMessage(message: string | object): string {
+    return typeof message === 'object' ? JSON.stringify(message) : message;
+  }
+
+  log(message: string | object, context?: string): void {
+    if (this.isLevelEnabled('info')) {
+      this.logger.info(this.formatMessage(message), { context });
     }
   }
 
-  async error(message: string) {
-    const levelLogger = process.env.LOG_LEVEL ?? 'debug'; //error
-    if (levelLogger === 'error') {
-      this.loggerError.error(message);
+  error(message: string | object, trace?: string, context?: string): void {
+    if (this.isLevelEnabled('error')) {
+      this.logger.error(this.formatMessage(message), { context, trace });
     }
-    this.loggerAll.error(message);
   }
 
-  async debug(message: string) {
-    const levelLogger = process.env.LOG_LEVEL ?? 'debug';
-    if (levelLogger === 'debug') {
-      this.loggerDebug.debug(message);
+  warn(message: string | object, context?: string): void {
+    if (this.isLevelEnabled('warn')) {
+      this.logger.warn(this.formatMessage(message), { context });
     }
-    this.loggerAll.debug(message);
   }
-  async warn(message: string) {
-    this.loggerAll.warn(message);
+
+  debug(message: string | object, context?: string): void {
+    if (this.isLevelEnabled('debug')) {
+      this.logger.debug(this.formatMessage(message), { context });
+    }
   }
-  async verbose(message: string) {
-    this.loggerAll.verbose(message);
+
+  verbose(message: string | object, context?: string): void {
+    if (this.isLevelEnabled('debug')) {
+      this.logger.verbose(this.formatMessage(message), { context });
+    }
   }
 }

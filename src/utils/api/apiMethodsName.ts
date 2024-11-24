@@ -1,6 +1,7 @@
 import { apiBaseEntityName } from './apiEntites';
 import { Validator } from './apiValidations';
 
+//En caso de tener una sola operacion
 export const apiMethodsName = {
   get: `Retrieves ${apiBaseEntityName}`,
   post: `Save ${apiBaseEntityName}`,
@@ -44,7 +45,7 @@ export const setMethodsName = (
   // Convertimos el enum a un array y verificamos si algún valor está incluido en apiBaseEntityName
   if (
     Object.values(methodStrings).some((methodStr) =>
-      apiBaseEntityName.includes(methodStr),
+      apiBaseEntityName?.includes(methodStr),
     )
   ) {
     return apiBaseEntityName;

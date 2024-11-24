@@ -9,17 +9,11 @@ import { Response, Request } from 'express';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName, apiMethods } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
-
 @Catch(BadRequestException)
 export class BadRequestExceptionFilter implements ExceptionFilter {
   private readonly INVALID_JSON_MESSAGE = 'Invalid JSON structure';
 
-  constructor(private readonly logger: LoggerService | LoggerKafkaService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
+  constructor(private logger: LoggerService) { }
 
   catch(exception: BadRequestException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -27,7 +21,6 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const request = ctx.getRequest<Request>();
     const status = exception.getStatus();
     const httpMethod = request.method;
-
     // Verificar si es un error de JSON mal formado
     const isJsonError = this.isJsonSyntaxError(exception);
 
@@ -49,7 +42,8 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     const exceptionResponse: string | object = exception.getResponse();
     return (
       typeof exceptionResponse === 'string' &&
-      exceptionResponse.includes('Unexpected token')
+      (exceptionResponse.includes('Unexpected token') ||
+        exceptionResponse.includes('Bad control character'))
     );
   }
 
@@ -97,6 +91,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     return {
       code: status,
       message: this.INVALID_JSON_MESSAGE,
+      detailedMessage: 'There was an issue with the JSON format. Ensure that all property names are double-quoted and check for any illegal control characters.',
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
@@ -122,7 +117,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
           }
           return acc;
         },
-        {},
+        {} as Record<string, string[]>,
       );
     } else if (typeof validationErrors === 'string') {
       groupedErrors.general = [validationErrors];
@@ -149,9 +144,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
   }
 
   private getEntityFromMethod(httpMethod: string) {
-    return apiMethodsName[
-      httpMethod.toLowerCase() as keyof typeof apiMethodsName
-    ];
+    return apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName];
   }
 
   private createErrorLog(
@@ -163,10 +156,10 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
   ) {
     return {
       code: apiExceptionConfig.badRequest.code,
-      message: apiExceptionConfig.badRequest.message,
+      message: this.INVALID_JSON_MESSAGE || apiExceptionConfig.badRequest.message,
       timestamp: new Date().toISOString(),
       service: apiMethods(httpMethod, entity),
-      validationErrors: groupedErrors,
+      errors: groupedErrors,
     };
   }
 }

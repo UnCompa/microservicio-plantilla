@@ -1,26 +1,35 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { PrismaClient } from '@prisma/client';
 import { PrismaClientInitializationError } from '@prisma/client/runtime/library';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 import { LoggerService } from '../loggger/logger.service';
 
 @Injectable()
-export class PrismaService extends PrismaClient {
-  private readonly logger =
-    process.env.USE_KAFKA == 'true'
-      ? new LoggerKafkaService()
-      : new LoggerService();
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy {
+  private readonly logger = new LoggerService()
+
   private readonly retryDelay = 5000; // Intentar reconectar cada 5 segundos
-  public isConnected = false; // Variable para almacenar el estado de la conexión
+  private readonly maxRetries = 5; // Número máximo de intentos
+  private retryCount = 0; // Contador de intentos
+  private retryInterval: NodeJS.Timeout;
+
+  public isConnected = false; // Estado de la conexión
 
   async onModuleInit() {
     await this.connectToDatabase();
+  }
+
+  async onModuleDestroy() {
+    this.stopRetryingConnection();
+    await this.$disconnect();
   }
 
   private async connectToDatabase() {
     try {
       await this.$connect();
       this.isConnected = true;
+      this.retryCount = 0;
       this.logger.log('Connected to the database');
     } catch (error) {
       this.isConnected = false;
@@ -33,8 +42,29 @@ export class PrismaService extends PrismaClient {
         this.logger.error('Unexpected error during Prisma initialization');
         this.logger.error(error);
       }
-      // Espera 5 segundos y vuelve a intentar
-      setTimeout(() => this.connectToDatabase(), this.retryDelay);
+
+      if (this.retryCount < this.maxRetries) {
+        this.retryCount++;
+        this.scheduleRetry();
+      } else {
+        this.logger.error(
+          'Exceeded maximum number of connection retries. Stopping further attempts.',
+        );
+      }
+    }
+  }
+
+  private scheduleRetry() {
+    this.stopRetryingConnection(); // Asegurarse de que no haya intervalos anteriores
+    this.retryInterval = setTimeout(
+      () => this.connectToDatabase(),
+      this.retryDelay,
+    );
+  }
+
+  private stopRetryingConnection() {
+    if (this.retryInterval) {
+      clearTimeout(this.retryInterval);
     }
   }
 }

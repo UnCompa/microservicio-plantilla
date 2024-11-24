@@ -3,11 +3,11 @@ FROM node:18-alpine AS dependencies
 
 WORKDIR /app
 
-# Copiar package.json y package-lock.json
-COPY package*.json ./
+# Copiar package.json y bun.lockb
+COPY package.json bun.lockb ./
 
-# Instalar dependencias de producción con npm ci
-RUN npm ci --only=production
+# Instalar dependencias de producción
+RUN bun install --prod
 
 # Copiar solo la carpeta prisma para generar el cliente
 COPY prisma ./prisma

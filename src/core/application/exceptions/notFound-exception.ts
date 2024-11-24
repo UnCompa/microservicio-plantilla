@@ -11,15 +11,10 @@ import { Validator } from 'src/utils/api/apiValidations';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
-import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) {
-    if (process.env.USE_KAFKA) {
-      this.logger = new LoggerKafkaService();
-    }
-  }
+  constructor(private logger: LoggerService) { }
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -47,7 +42,7 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
         timestamp: new Date().toISOString(),
         service:
           apiMethodsName[
-            httpMethod.toLowerCase() as keyof typeof apiMethodsName
+          httpMethod.toLowerCase() as keyof typeof apiMethodsName
           ],
       });
       return;
@@ -66,7 +61,7 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
               timestamp: new Date().toISOString(),
               service:
                 apiMethodsName[
-                  httpMethod.toLowerCase() as keyof typeof apiMethodsName
+                httpMethod.toLowerCase() as keyof typeof apiMethodsName
                 ],
             });
             return;
