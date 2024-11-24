@@ -6,12 +6,16 @@ import { ThrottlerModule } from '@nestjs/throttler';
 import { validationSchemaEnvs } from './utils/config/valtidationEnvs';
 import { LoggerModule } from './core/application/loggger/logger.module';
 import { UserModule } from './core/infrastructure/adaptarts/modules/user.module';
-import { JaegerInterceptor } from '@chankamlam/nest-jaeger';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { TerminusModule } from '@nestjs/terminus';
+import { HealthController } from './core/infrastructure/adaptarts/controllers/v1/healt.controller';
+import { PrismaService } from './core/application/prisma/prisma.service';
+import { HttpModule } from '@nestjs/axios';
 @Module({
   imports: [
     ExampleModule,
     UserModule,
+    TerminusModule,
+    HttpModule,
     ConfigModule.forRoot({
       //envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       isGlobal: true, // Hace que el ConfigModule esté disponible en toda la app sin necesidad de importarlo en cada módulo
@@ -23,23 +27,8 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
     }]),
     LoggerModule.register()
   ],
-  controllers: [],
-  providers: [
-    {
-      provide: APP_INTERCEPTOR,
-      useFactory: () => {
-        const config = {
-          serviceName: 'my-nestjs-app',
-          sampler: { type: 'const', param: 1 },
-          reporter: { collectorEndpoint: 'http://localhost:14268/api/traces' },
-        };
-
-        const options = { baggagePrefix: '-MyApp-' };
-
-        return new JaegerInterceptor(config, options);
-      },
-    },
-  ],
+  controllers: [HealthController],
+  providers: [PrismaService],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

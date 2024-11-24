@@ -42,15 +42,7 @@ export class PrismaService
         this.logger.error('Unexpected error during Prisma initialization');
         this.logger.error(error);
       }
-
-      if (this.retryCount < this.maxRetries) {
-        this.retryCount++;
-        this.scheduleRetry();
-      } else {
-        this.logger.error(
-          'Exceeded maximum number of connection retries. Stopping further attempts.',
-        );
-      }
+      this.scheduleRetry();
     }
   }
 
