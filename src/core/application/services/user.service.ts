@@ -11,7 +11,7 @@ import { User } from 'src/core/domain/user.entity';
 import { SendData } from '../dtos/sendDataUser.dto';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { LoggerService } from '../loggger/logger.service';
-import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { hanleResponseOk } from 'src/utils/api/apiResponseHandle';
 //import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Injectable()
@@ -40,11 +40,11 @@ export class UserService {
       this.logger.log(
         `${apiBaseEntityName} successfully created: ${JSON.stringify(users)}`,
       );
+      return hanleResponseOk({ useId: users.id }, "User created successfully", 201)
     } catch (error) {
       this.logger.error(`Error creating user: ${error.message}`);
       throw new BadRequestException('Error creating user');
     }
-    return { message: apiMethodsName['000'] };
   }
 
   async findAll(limit: string, page: string): Promise<SendData | User[]> {
@@ -80,6 +80,7 @@ export class UserService {
       }
       return user;
     } catch (e) {
+      this.logger.error(e)
       // Aquí puedes lanzar una excepción diferente si es necesario, pero asegurate de que sea NotFoundException
       throw new NotFoundException(
         `${apiBaseEntityName} not found for ID: ${id}`,

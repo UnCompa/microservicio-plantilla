@@ -7,7 +7,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Instalar dependencias de producción con npm ci
-RUN npm ci --only=production
+RUN npm i --production
 
 # Copiar solo la carpeta prisma para generar el cliente
 COPY prisma ./prisma

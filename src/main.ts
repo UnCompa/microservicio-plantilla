@@ -15,7 +15,7 @@ import helmet from 'helmet';
 import { HttpExceptionFilter } from './core/application/exceptions/httpException';
 import { LoggerService } from './core/application/loggger/logger.service';
 import { apiSwaggerConfig } from './utils/config/swaggerConfig';
-
+import { LoggingInterceptor } from './core/application/interceptors/request.interceptor';
 async function bootstrap() {
   // Crear la aplicación Nest.js
   const app = await NestFactory.create(AppModule);
@@ -50,7 +50,7 @@ async function bootstrap() {
     new UnauthorizedExceptionFilter(loggerService),
     new MethodNotAllowedFilter(loggerService),
   );
-
+  app.useGlobalInterceptors(new LoggingInterceptor(loggerService))
   // Configuración de Swagger
   const config = apiSwaggerConfig(appConfig.mode); // Usar la configuración externa
   const document = SwaggerModule.createDocument(app, config);
