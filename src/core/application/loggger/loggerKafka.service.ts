@@ -3,19 +3,16 @@ import { LoggerService } from './logger.service';
 import { KafkaLogger } from 'kafka-logger-mm'; // Librería de Kafka
 import { messageCustom } from 'src/utils/api/apiKafkaLogConfig';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
-
 @Injectable()
 export class LoggerKafkaService extends LoggerService {
   private readonly kafkaLogger: KafkaLogger;
-
+  private brokers: any
   constructor() {
     super();
-    console.log('LoggerKafkaService instantiated');
-    const brokers = process.env.KAFKA_BROKERS?.split(',') || ['0.0.0.0:9092'];
+    this.brokers = process.env.KAFKA_BROKERS?.split(',') || ['0.0.0.0:9092'];
     const topic = process.env.KAFKA_TOPIC || 'example';
 
-    this.kafkaLogger = new KafkaLogger(brokers, topic);
-    console.log('LoggerKafkaService connected');
+    this.kafkaLogger = new KafkaLogger(this.brokers, topic);
 
     try {
       this.kafkaLogger.connect();
@@ -43,6 +40,7 @@ export class LoggerKafkaService extends LoggerService {
 
   private async logToKafka(level: string, message: any): Promise<void> {
     try {
+      console.log(this.brokers)
       await this.kafkaLogger.logCustomMessage(level, message);
     } catch (error) {
       super.error(

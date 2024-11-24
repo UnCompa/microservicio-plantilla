@@ -12,7 +12,7 @@ import { enablePathMethods } from 'src/utils/api/apiEnableMethods';
 export class PathMethodMiddleware implements NestMiddleware {
   use(req: Request, res: Response, next: NextFunction) {
     const method = req.method.toLowerCase(); // Obtener el método HTTP (get, post, etc.)
-    const path = req.originalUrl; // Obtener el path solicitado
+    const path = req.baseUrl; // Obtener el path solicitado
 
     // Verificar si la ruta existe en cualquier método
     const isRouteDefined = Object.values(enablePathMethods).some(

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -11,7 +12,9 @@ import { User } from 'src/core/domain/user.entity';
 import { SendData } from '../dtos/sendDataUser.dto';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
 import { LoggerService } from '../loggger/logger.service';
-import { hanleResponseOk } from 'src/utils/api/apiResponseHandle';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
+import { handleResponseOk } from 'src/utils/api/apiResponseHandle';
 //import { LoggerKafkaService } from '../loggger/loggerKafka.service';
 
 @Injectable()
@@ -19,6 +22,7 @@ export class UserService {
   constructor(
     private prisma: PrismaService,
     private logger: LoggerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache
   ) { }
 
   async create(data: CreateUserDto): Promise<object> {
@@ -40,34 +44,48 @@ export class UserService {
       this.logger.log(
         `${apiBaseEntityName} successfully created: ${JSON.stringify(users)}`,
       );
-      return hanleResponseOk({ useId: users.id }, "User created successfully", 201)
+      return handleResponseOk({ useId: users.id }, "User created successfully", 201)
     } catch (error) {
       this.logger.error(`Error creating user: ${error.message}`);
       throw new BadRequestException('Error creating user');
     }
   }
-
+  //@Cron(CronExpression.EVERY_10_SECONDS)
   async findAll(limit: string, page: string): Promise<SendData | User[]> {
+    const cacheKey = `users`; // Clave única para el caché
+
+    // Verifica si los datos están en caché
+    const cachedData = await this.cacheManager.get<SendData | User[]>(cacheKey);
+    if (cachedData) {
+      this.logger.log(`Cache hit for key: ${cacheKey}`);
+      return cachedData; // Retorna los datos desde el caché si existen
+    }
+
+    // Realiza la consulta a la base de datos si no hay caché
     const total = await this.prisma.users.count();
     const pageQuery = limit && page ? page : (page = '1');
+    let dataSend: SendData | User[];
+
     if (limit) {
       const usersQuery = await this.prisma.users.findMany({
         take: parseInt(limit),
         skip: (parseInt(pageQuery) - 1) * parseInt(limit),
       });
-      const dataSend = {
+      dataSend = {
         data: usersQuery,
         limit: limit,
         page: page,
         totalPages: Math.ceil(total / parseInt(limit)).toString(),
       };
-      this.logger.log(JSON.stringify({ total: 'Total de registro: ' + total }));
-      return dataSend;
     } else {
-      const users = await this.prisma.users.findMany();
-      this.logger.log(JSON.stringify('Total de registro: ' + total));
-      return users;
+      dataSend = await this.prisma.users.findMany();
     }
+
+    // Almacena los datos en caché
+    await this.cacheManager.set(cacheKey, dataSend, 60000); // 60 segundos de tiempo de vida
+    this.logger.log(`Cache set for key: ${cacheKey}`);
+
+    return cachedData
   }
 
   async findOne(id: string): Promise<User> {

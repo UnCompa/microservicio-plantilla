@@ -29,13 +29,12 @@ export class UserController {
   constructor(
     private userService: UserService,
     private prismaService: PrismaService,
-  ) {}
+  ) { }
   @Post('/msa/users/1.0')
   @HttpCode(201)
   async createUser(@Body() data: CreateUserDto): Promise<object> {
     return this.userService.create(data);
   }
-
   @Get('/msa/users/1.0')
   async getAllUsers(@Query() params): Promise<SendData | User[]> {
     const { limit, page } = params;

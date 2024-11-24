@@ -10,12 +10,14 @@ import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './core/infrastructure/adaptarts/controllers/v1/healt.controller';
 import { PrismaService } from './core/application/prisma/prisma.service';
 import { HttpModule } from '@nestjs/axios';
+import { ScheduleModule } from '@nestjs/schedule';
 @Module({
   imports: [
     ExampleModule,
     UserModule,
     TerminusModule,
     HttpModule,
+    ScheduleModule.forRoot(),
     ConfigModule.forRoot({
       //envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       isGlobal: true, // Hace que el ConfigModule esté disponible en toda la app sin necesidad de importarlo en cada módulo
