@@ -10,7 +10,7 @@
     "start": "nest start",
     "start:dev": "cross-env NODE_ENV=development LOG_LEVEL=info nest start --watch",
     "start:debug": "cross-env NODE_ENV=test LOG_LEVEL=debug nest start --debug --watch",
-    "start:prod": "cross-env NODE_ENV=production node LOG_LEVEL=error dist/main",
+    "start:prod": "cross-env NODE_ENV=production LOG_LEVEL=error node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",

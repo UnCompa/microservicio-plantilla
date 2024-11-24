@@ -6,7 +6,7 @@ module.exports = {
     tsconfigRootDir: __dirname,
     sourceType: 'module',
   },
-  plugins: ['@typescript-eslint', 'prettier', 'nestjs'],
+  plugins: ['@typescript-eslint', 'prettier'],
   extends: [
     'plugin:@typescript-eslint/recommended', // Reglas recomendadas de TypeScript
     'plugin:prettier/recommended',          // Integra Prettier con ESLint

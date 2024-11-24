@@ -1,21 +1,21 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
-import { SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
-import { appConfig, helmetConfig } from './utils/config/app.config';
+import { NestFactory } from '@nestjs/core';
+import { SwaggerModule } from '@nestjs/swagger';
+import helmet from 'helmet';
+import { AppModule } from './app.module';
 import { BadRequestExceptionFilter } from './core/application/exceptions/badRequest.exception';
-import { MethodNotAllowedFilter } from './core/application/exceptions/methodNotAllow-exception';
-import { NotFoundExceptionFilter } from './core/application/exceptions/notFound-exception';
 import { ConflictExceptionFilter } from './core/application/exceptions/conflict.exception';
 import { ForbiddenExceptionFilter } from './core/application/exceptions/forbidden.exception';
+import { HttpExceptionFilter } from './core/application/exceptions/httpException';
 import { InternalServerErrorExceptionFilter } from './core/application/exceptions/internalServerError.exception';
+import { MethodNotAllowedFilter } from './core/application/exceptions/methodNotAllow-exception';
+import { NotFoundExceptionFilter } from './core/application/exceptions/notFound-exception';
 import { ServiceUnavailableExceptionFilter } from './core/application/exceptions/serviceUnavailable.exception';
 import { UnauthorizedExceptionFilter } from './core/application/exceptions/unauthorized.exception';
-import helmet from 'helmet';
-import { HttpExceptionFilter } from './core/application/exceptions/httpException';
-import { LoggerService } from './core/application/loggger/logger.service';
-import { apiSwaggerConfig } from './utils/config/swaggerConfig';
 import { LoggingInterceptor } from './core/application/interceptors/request.interceptor';
+import { LoggerService } from './core/application/loggger/logger.service';
+import { appConfig, helmetConfig } from './utils/config/app.config';
+import { apiSwaggerConfig } from './utils/config/swaggerConfig';
 async function bootstrap() {
   // Crear la aplicación Nest.js
   const app = await NestFactory.create(AppModule);
@@ -54,7 +54,7 @@ async function bootstrap() {
   // Configuración de Swagger
   const config = apiSwaggerConfig(appConfig.mode); // Usar la configuración externa
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
+  SwaggerModule.setup('v1.0/api', app, document);
   //Versionado de apis (v1.0)
   app.setGlobalPrefix('v1.0');
   // Levantar Microservicio
