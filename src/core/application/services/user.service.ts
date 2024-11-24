@@ -84,7 +84,7 @@ export class UserService {
     // Almacena los datos en caché
     await this.cacheManager.set(cacheKey, dataSend, 60000); // 60 segundos de tiempo de vida
     this.logger.log(`Cache set for key: ${cacheKey}`);
-
+    
     return cachedData
   }
 

@@ -1,29 +1,21 @@
+import { CacheModule } from '@nestjs/cache-manager';
 import { Module } from '@nestjs/common';
-import { UserController } from '../controllers/v1/user.controller';
-import { UserService } from 'src/core/application/services/user.service';
-import { PrismaService } from 'src/core/application/prisma/prisma.service';
-import { LoggerModule } from 'src/core/application/loggger/logger.module';
-import { CacheModule, CacheStore } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-redis-yet';
+import { LoggerModule } from 'src/core/application/loggger/logger.module';
+import { PrismaService } from 'src/core/application/prisma/prisma.service';
+import { UserService } from 'src/core/application/services/user.service';
+import { UserController } from '../controllers/v1/user.controller';
 @Module({
   imports: [
     LoggerModule.register(),
     CacheModule.register({
-      useFactory: async () => {
-        const store = await redisStore({
-          socket: {
-            host: 'localhost',
-            port: 6379,
-          },
-        });
-
-        return {
-          store: store as unknown as CacheStore,
-          ttl: 3 * 60000, // 3 minutes (milliseconds)
-        };
-      }
-    })],
+      store: redisStore,
+      host: 'localhost', // Dirección del servidor Redis
+      port: 6379,        // Puerto de Redis
+      ttl: 600,          // Tiempo de vida en segundos (10 minutos)
+    }),
+  ],
   controllers: [UserController],
   providers: [UserService, PrismaService],
 })
-export class UserModule { }
+export class UserModule {}

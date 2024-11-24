@@ -1,8 +1,8 @@
 import {
+  CallHandler,
+  ExecutionContext,
   Injectable,
   NestInterceptor,
-  ExecutionContext,
-  CallHandler,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
@@ -30,7 +30,7 @@ export class LoggingInterceptor implements NestInterceptor {
       map((data) => {
         this.logger.log(
           {
-            message: data,
+            //message: data,
             duration: `${Date.now() - now}ms`,
             appUser: request.headers?.from,
           },
