@@ -22,6 +22,7 @@ export class PrismaService
   }
 
   async onModuleDestroy() {
+    this.isConnected = false;
     this.stopRetryingConnection();
     await this.$disconnect();
   }
