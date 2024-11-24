@@ -15,12 +15,11 @@ export class PathMethodMiddleware implements NestMiddleware {
     const path = req.originalUrl; // Obtener el path solicitado
 
     // Verificar si la ruta existe en cualquier método
-    const isRouteDefined = Object.values(enablePathMethods).some(
-      (allowedPaths) =>
-        allowedPaths.some((allowedPath) => {
-          const matcher = match(allowedPath, { decode: decodeURIComponent });
-          return matcher(path); // Verifica si la ruta coincide con cualquier ruta definida
-        }),
+    const isRouteDefined = Object.values(enablePathMethods).some(allowedPaths =>
+      allowedPaths.some(allowedPath => {
+        const matcher = match(allowedPath, { decode: decodeURIComponent });
+        return matcher(path); // Verifica si la ruta coincide con cualquier ruta definida
+      }),
     );
     if (!isRouteDefined) {
       // Si la ruta no está definida para ningún método, devolvemos un 404
@@ -29,7 +28,7 @@ export class PathMethodMiddleware implements NestMiddleware {
 
     // Si la ruta está definida, verificamos si el método está permitido
     if (enablePathMethods[method]) {
-      const isMethodAllowed = enablePathMethods[method].some((allowedPath) => {
+      const isMethodAllowed = enablePathMethods[method].some(allowedPath => {
         const matcher = match(allowedPath, { decode: decodeURIComponent });
         return matcher(path); // Verifica si la ruta es válida para el método actual
       });

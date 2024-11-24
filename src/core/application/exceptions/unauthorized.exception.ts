@@ -10,7 +10,7 @@ import { apiMethodsName } from 'src/utils/api/apiMethodsName';
 import { LoggerService } from '../loggger/logger.service';
 @Catch(UnauthorizedException)
 export class UnauthorizedExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: UnauthorizedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

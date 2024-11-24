@@ -13,5 +13,4 @@ export class UserController {
   async createUser() {
     //return this.userService.create(data);
   }
-
 }

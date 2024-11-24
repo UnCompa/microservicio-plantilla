@@ -11,7 +11,7 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(ForbiddenException)
 export class ForbiddenExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
   catch(exception: ForbiddenException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -52,7 +52,7 @@ export class ForbiddenExceptionFilter implements ExceptionFilter {
 
     return (
       apiExceptionConfig.forbidden.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
+        route => route.method === httpMethod && url.startsWith(route.path),
       ) || defaultRouteConfig
     );
   }

@@ -1,7 +1,9 @@
 // apiSwaggerConfig.ts
-import { DocumentBuilder } from '@nestjs/swagger';
+import { DocumentBuilder, OpenAPIObject } from '@nestjs/swagger';
 
-export const apiSwaggerConfig = (mode: string) => {
+export const apiSwaggerConfig = (
+  mode: string,
+): Omit<OpenAPIObject, 'paths'> => {
   const isProd = mode === 'production'; // Si el modo es producción
 
   const servers = [

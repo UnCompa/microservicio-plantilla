@@ -11,7 +11,7 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(ConflictException)
 export class ConflictExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: ConflictException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -53,7 +53,7 @@ export class ConflictExceptionFilter implements ExceptionFilter {
 
     return (
       apiExceptionConfig.conflict.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
+        route => route.method === httpMethod && url.startsWith(route.path),
       ) || defaultRouteConfig
     );
   }

@@ -50,16 +50,20 @@ async function bootstrap() {
     new UnauthorizedExceptionFilter(loggerService),
     new MethodNotAllowedFilter(loggerService),
   );
-  app.useGlobalInterceptors(new LoggingInterceptor(loggerService))
+  app.useGlobalInterceptors(new LoggingInterceptor(loggerService));
   // Configuración de Swagger
   const config = apiSwaggerConfig(appConfig.mode); // Usar la configuración externa
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
   //Versionado de apis (v1.0)
-  app.setGlobalPrefix('v1.0')
+  app.setGlobalPrefix('v1.0');
   // Levantar Microservicio
   await app.listen(appConfig.port);
-  loggerService.log(`🚀 Microservice started on port ${appConfig.port} in ${appConfig.mode.toUpperCase()} mode`);
+  loggerService.log(
+    `🚀 Microservice started on port ${
+      appConfig.port
+    } in ${appConfig.mode.toUpperCase()} mode`,
+  );
 }
 
 bootstrap();

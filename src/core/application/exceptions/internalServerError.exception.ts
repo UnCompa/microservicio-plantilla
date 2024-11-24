@@ -11,7 +11,7 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(InternalServerErrorException)
 export class InternalServerErrorExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: InternalServerErrorException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -49,7 +49,7 @@ export class InternalServerErrorExceptionFilter implements ExceptionFilter {
 
     return (
       apiExceptionConfig.internalServerError?.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
+        route => route.method === httpMethod && url.startsWith(route.path),
       ) || defaultRouteConfig
     );
   }

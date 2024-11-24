@@ -12,12 +12,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import { CheckDatabaseConnectionGuard } from 'src/core/application/decorators/checkDatabase.decorator';
 import { CreateUserDto } from 'src/core/application/dtos/create-user.dto';
 import { SendData } from 'src/core/application/dtos/sendDataUser.dto';
 import { UpdateUserDto } from 'src/core/application/dtos/updateUser.dto';
 import { PrismaService } from 'src/core/application/prisma/prisma.service';
 import { UserService } from 'src/core/application/services/user.service';
-import { CheckDatabaseConnectionGuard } from 'src/core/application/decorators/checkDatabase.decorator';
 import { User } from 'src/core/domain/user.entity';
 import { Validator } from 'src/utils/api/apiValidations';
 

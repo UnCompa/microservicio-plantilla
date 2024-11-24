@@ -1,20 +1,20 @@
 import {
-  ExceptionFilter,
-  Catch,
-  NotFoundException,
   ArgumentsHost,
+  Catch,
+  ExceptionFilter,
   HttpStatus,
+  NotFoundException,
 } from '@nestjs/common';
 import { Request, Response } from 'express';
-import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
-import { Validator } from 'src/utils/api/apiValidations';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
+import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 import { apiMethodsName } from 'src/utils/api/apiMethodsName';
+import { Validator } from 'src/utils/api/apiValidations';
 import { LoggerService } from '../loggger/logger.service';
 
 @Catch(NotFoundException)
 export class NotFoundExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: NotFoundException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -42,7 +42,7 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
         timestamp: new Date().toISOString(),
         service:
           apiMethodsName[
-          httpMethod.toLowerCase() as keyof typeof apiMethodsName
+            httpMethod.toLowerCase() as keyof typeof apiMethodsName
           ],
       });
       return;
@@ -61,7 +61,7 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
               timestamp: new Date().toISOString(),
               service:
                 apiMethodsName[
-                httpMethod.toLowerCase() as keyof typeof apiMethodsName
+                  httpMethod.toLowerCase() as keyof typeof apiMethodsName
                 ],
             });
             return;
@@ -107,7 +107,7 @@ export class NotFoundExceptionFilter implements ExceptionFilter {
 
     return (
       apiExceptionConfig.notFound.routes.find(
-        (route) => route.method === httpMethod && url.startsWith(route.path),
+        route => route.method === httpMethod && url.startsWith(route.path),
       ) || defaultRouteConfig
     );
   }

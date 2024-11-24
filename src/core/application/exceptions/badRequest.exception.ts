@@ -13,7 +13,7 @@ import { LoggerService } from '../loggger/logger.service';
 export class BadRequestExceptionFilter implements ExceptionFilter {
   private readonly INVALID_JSON_MESSAGE = 'Invalid JSON structure';
 
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: BadRequestException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
@@ -91,7 +91,8 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
     return {
       code: status,
       message: this.INVALID_JSON_MESSAGE,
-      detailedMessage: 'There was an issue with the JSON format. Ensure that all property names are double-quoted and check for any illegal control characters.',
+      detailedMessage:
+        'There was an issue with the JSON format. Ensure that all property names are double-quoted and check for any illegal control characters.',
       timestamp: new Date().toISOString(),
       path: request.url,
       method: request.method,
@@ -133,7 +134,7 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
       path: url,
     };
     const cleanPath = (path: string) => path.replace(/\.$/, '');
-    const configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+    const configRoute = apiExceptionConfig.notFound.routes.find(route => {
       const cleanedRoutePath = cleanPath(route.path);
       const cleanedUrl = cleanPath(url);
       return (
@@ -144,7 +145,9 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
   }
 
   private getEntityFromMethod(httpMethod: string) {
-    return apiMethodsName[httpMethod.toLowerCase() as keyof typeof apiMethodsName];
+    return apiMethodsName[
+      httpMethod.toLowerCase() as keyof typeof apiMethodsName
+    ];
   }
 
   private createErrorLog(
@@ -156,7 +159,8 @@ export class BadRequestExceptionFilter implements ExceptionFilter {
   ) {
     return {
       code: apiExceptionConfig.badRequest.code,
-      message: this.INVALID_JSON_MESSAGE || apiExceptionConfig.badRequest.message,
+      message:
+        this.INVALID_JSON_MESSAGE || apiExceptionConfig.badRequest.message,
       timestamp: new Date().toISOString(),
       service: apiMethods(httpMethod, entity),
       errors: groupedErrors,

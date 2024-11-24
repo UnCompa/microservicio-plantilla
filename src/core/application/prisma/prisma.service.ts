@@ -6,8 +6,9 @@ import { LoggerService } from '../loggger/logger.service';
 @Injectable()
 export class PrismaService
   extends PrismaClient
-  implements OnModuleInit, OnModuleDestroy {
-  private readonly logger = new LoggerService()
+  implements OnModuleInit, OnModuleDestroy
+{
+  private readonly logger = new LoggerService();
 
   private readonly retryDelay = 5000; // Intentar reconectar cada 5 segundos
   private readonly maxRetries = 5; // Número máximo de intentos

@@ -16,7 +16,7 @@ import { apiMethodsName, setMethodsName } from 'src/utils/api/apiMethodsName';
 import { apiExceptionConfig } from 'src/utils/api/apiExceptionConfig';
 @Catch(MethodNotAllowedException)
 export class MethodNotAllowedFilter implements ExceptionFilter {
-  constructor(private readonly logger: LoggerService) { }
+  constructor(private readonly logger: LoggerService) {}
   catch(exception: MethodNotAllowedException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -79,7 +79,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
   // Verificar si la ruta está definida para el método HTTP actual
   private isMethodAllowed(httpMethod: string, path: string): boolean {
     if (enablePathMethods[httpMethod]) {
-      return enablePathMethods[httpMethod].some((allowedPath) => {
+      return enablePathMethods[httpMethod].some(allowedPath => {
         const matcher = match(allowedPath, { decode: decodeURIComponent });
         return matcher(path);
       });
@@ -89,8 +89,8 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
 
   // Verificar si la ruta está definida en cualquier método
   private isRouteDefined(path: string): boolean {
-    return Object.values(enablePathMethods).some((allowedPaths) =>
-      allowedPaths.some((allowedPath) => {
+    return Object.values(enablePathMethods).some(allowedPaths =>
+      allowedPaths.some(allowedPath => {
         const matcher = match(allowedPath, { decode: decodeURIComponent });
         return matcher(path);
       }),
@@ -202,7 +202,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       path: url,
     };
     const cleanPath = (path: string) => path.replace(/\.$/, '');
-    let configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+    let configRoute = apiExceptionConfig.notFound.routes.find(route => {
       const cleanedRoutePath = cleanPath(route.path);
       const cleanedUrl = cleanPath(url);
       if (!cleanedUrl.startsWith(cleanedRoutePath)) {
@@ -214,7 +214,7 @@ export class MethodNotAllowedFilter implements ExceptionFilter {
       );
     });
     if (configRoute === undefined) {
-      configRoute = apiExceptionConfig.methodNotAllowed.routes.find((route) => {
+      configRoute = apiExceptionConfig.methodNotAllowed.routes.find(route => {
         const cleanedRoutePath = cleanPath(route.path);
         const cleanedUrl = cleanPath(url);
         if (!cleanedUrl.startsWith(cleanedRoutePath)) {

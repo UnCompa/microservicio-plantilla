@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { LoggerService } from './logger.service';
 import { KafkaLogger } from 'kafka-logger-mm'; // Librería de Kafka
-import { messageCustom } from 'src/utils/api/apiKafkaLogConfig';
 import { apiBaseEntityName } from 'src/utils/api/apiEntites';
+import { messageCustom } from 'src/utils/api/apiKafkaLogConfig';
+import { LoggerService } from './logger.service';
 
 @Injectable()
 export class LoggerKafkaService extends LoggerService {
@@ -20,7 +20,11 @@ export class LoggerKafkaService extends LoggerService {
     try {
       this.kafkaLogger.connect();
     } catch (error) {
-      super.error('Error connecting to Kafka: ' + error.message, undefined, 'KafkaService');
+      super.error(
+        'Error connecting to Kafka: ' + error.message,
+        undefined,
+        'KafkaService',
+      );
     }
   }
 
@@ -33,12 +37,7 @@ export class LoggerKafkaService extends LoggerService {
     const formattedMessage =
       typeof message === 'object' ? JSON.stringify(message) : message;
 
-    return messageCustom(
-      formattedMessage,
-      method,
-      entity,
-      level,
-    );
+    return messageCustom(formattedMessage, method, entity, level);
   }
 
   private async logToKafka(level: string, message: any): Promise<void> {
@@ -55,9 +54,9 @@ export class LoggerKafkaService extends LoggerService {
 
   async log(
     message: string | object,
-    method: string = 'GET',
+    method = 'GET',
     entity: string = apiBaseEntityName,
-    context: string = 'APP',
+    context = 'APP',
   ): Promise<void> {
     const builtMessage = this.buildMessage(message, method, entity, 'INFO');
     super.log(message, context); // Log en consola y archivos
@@ -67,9 +66,9 @@ export class LoggerKafkaService extends LoggerService {
   async error(
     message: string | object,
     trace?: string,
-    method: string = 'GET',
+    method = 'GET',
     entity: string = apiBaseEntityName,
-    context: string = 'APP',
+    context = 'APP',
   ): Promise<void> {
     const builtMessage = this.buildMessage(message, method, entity, 'ERROR');
     super.error(message, trace, context); // Log en consola y archivos
@@ -78,9 +77,9 @@ export class LoggerKafkaService extends LoggerService {
 
   async warn(
     message: string | object,
-    method: string = 'GET',
+    method = 'GET',
     entity: string = apiBaseEntityName,
-    context: string = 'APP',
+    context = 'APP',
   ): Promise<void> {
     const builtMessage = this.buildMessage(message, method, entity, 'WARN');
     super.warn(message, context); // Log en consola y archivos
@@ -89,9 +88,9 @@ export class LoggerKafkaService extends LoggerService {
 
   async debug(
     message: string | object,
-    method: string = 'GET',
+    method = 'GET',
     entity: string = apiBaseEntityName,
-    context: string = 'APP',
+    context = 'APP',
   ): Promise<void> {
     const builtMessage = this.buildMessage(message, method, entity, 'DEBUG');
     super.debug(message, context); // Log en consola y archivos
@@ -100,9 +99,9 @@ export class LoggerKafkaService extends LoggerService {
 
   async verbose(
     message: string | object,
-    method: string = 'GET',
+    method = 'GET',
     entity: string = apiBaseEntityName,
-    context: string = 'APP',
+    context = 'APP',
   ): Promise<void> {
     const builtMessage = this.buildMessage(message, method, entity, 'VERBOSE');
     super.verbose(message, context); // Log en consola y archivos

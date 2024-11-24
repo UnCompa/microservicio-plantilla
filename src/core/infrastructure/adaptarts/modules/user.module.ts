@@ -9,4 +9,4 @@ import { LoggerModule } from 'src/core/application/loggger/logger.module';
   controllers: [UserController],
   providers: [UserService, PrismaService],
 })
-export class UserModule { }
+export class UserModule {}

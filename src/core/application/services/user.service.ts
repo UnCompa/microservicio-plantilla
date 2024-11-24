@@ -16,10 +16,7 @@ import { hanleResponseOk } from 'src/utils/api/apiResponseHandle';
 
 @Injectable()
 export class UserService {
-  constructor(
-    private prisma: PrismaService,
-    private logger: LoggerService,
-  ) { }
+  constructor(private prisma: PrismaService, private logger: LoggerService) {}
 
   async create(data: CreateUserDto): Promise<object> {
     const userExists = await this.prisma.users.findMany({
@@ -34,13 +31,16 @@ export class UserService {
         data: {
           name: data.name,
           email: data.email,
-
         },
       });
       this.logger.log(
         `${apiBaseEntityName} successfully created: ${JSON.stringify(users)}`,
       );
-      return hanleResponseOk({ useId: users.id }, "User created successfully", 201)
+      return hanleResponseOk(
+        { useId: users.id },
+        'User created successfully',
+        201,
+      );
     } catch (error) {
       this.logger.error(`Error creating user: ${error.message}`);
       throw new BadRequestException('Error creating user');
@@ -80,7 +80,7 @@ export class UserService {
       }
       return user;
     } catch (e) {
-      this.logger.error(e)
+      this.logger.error(e);
       // Aquí puedes lanzar una excepción diferente si es necesario, pero asegurate de que sea NotFoundException
       throw new NotFoundException(
         `${apiBaseEntityName} not found for ID: ${id}`,

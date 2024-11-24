@@ -26,10 +26,14 @@ export class LoggerService {
 
     const logFormat = format.combine(
       format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-      format.printf((info) =>
+      format.printf(info =>
         typeof info.message === 'string'
-          ? `${info.timestamp} - [${info.level.toUpperCase()}] ${info.context || 'APP'}: ${info.message}`
-          : `${info.timestamp} - [${info.level.toUpperCase()}] ${info.context || 'APP'}: ${JSON.stringify(info.message)}`,
+          ? `${info.timestamp} - [${info.level.toUpperCase()}] ${
+              info.context || 'APP'
+            }: ${info.message}`
+          : `${info.timestamp} - [${info.level.toUpperCase()}] ${
+              info.context || 'APP'
+            }: ${JSON.stringify(info.message)}`,
       ),
     );
 

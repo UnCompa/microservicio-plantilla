@@ -9,7 +9,7 @@ import { map } from 'rxjs/operators';
 import { LoggerService } from '../loggger/logger.service';
 @Injectable()
 export class LoggingInterceptor implements NestInterceptor {
-  constructor(private readonly logger: LoggerService) { }
+  constructor(private readonly logger: LoggerService) {}
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const now = Date.now();
@@ -27,7 +27,7 @@ export class LoggingInterceptor implements NestInterceptor {
     });
     // Log the response and timing after processing
     return next.handle().pipe(
-      map((data) => {
+      map(data => {
         this.logger.log(
           {
             message: data,

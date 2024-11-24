@@ -19,13 +19,15 @@ import { HttpModule } from '@nestjs/axios';
     ConfigModule.forRoot({
       //envFilePath: `.env.${process.env.NODE_ENV || 'development'}`,
       isGlobal: true, // Hace que el ConfigModule esté disponible en toda la app sin necesidad de importarlo en cada módulo
-      validationSchema: validationSchemaEnvs
+      validationSchema: validationSchemaEnvs,
     }),
-    ThrottlerModule.forRoot([{
-      ttl: 60,
-      limit: 10,
-    }]),
-    LoggerModule.register()
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60,
+        limit: 10,
+      },
+    ]),
+    LoggerModule.register(),
   ],
   controllers: [HealthController],
   providers: [PrismaService],

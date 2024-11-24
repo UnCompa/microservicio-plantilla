@@ -12,7 +12,7 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(HttpException)
 export class HttpExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
   catch(exception: HttpException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
@@ -41,7 +41,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
         code: status,
         timestamp: new Date().toISOString(),
         service: setMethodsName(httpMethod.toLowerCase(), entityApi),
-        ...customMessage
+        ...customMessage,
       };
       this.logger.error(JSON.stringify(customResponse));
       return response.status(status).json(customMessage); // Se envía solo una vez
@@ -68,7 +68,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       path: url,
     };
     const cleanPath = (path: string) => path.replace(/\.$/, '');
-    let configRoute = apiExceptionConfig.notFound.routes.find((route) => {
+    let configRoute = apiExceptionConfig.notFound.routes.find(route => {
       const cleanedRoutePath = cleanPath(route.path);
       const cleanedUrl = cleanPath(url);
       if (!cleanedUrl.startsWith(cleanedRoutePath)) {
@@ -80,7 +80,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       );
     });
     if (configRoute === undefined) {
-      configRoute = apiExceptionConfig.methodNotAllowed.routes.find((route) => {
+      configRoute = apiExceptionConfig.methodNotAllowed.routes.find(route => {
         const cleanedRoutePath = cleanPath(route.path);
         const cleanedUrl = cleanPath(url);
         if (!cleanedUrl.startsWith(cleanedRoutePath)) {

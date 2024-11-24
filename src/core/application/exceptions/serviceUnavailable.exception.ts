@@ -11,7 +11,7 @@ import { LoggerService } from '../loggger/logger.service';
 
 @Catch(ServiceUnavailableException)
 export class ServiceUnavailableExceptionFilter implements ExceptionFilter {
-  constructor(private logger: LoggerService) { }
+  constructor(private logger: LoggerService) {}
 
   catch(exception: ServiceUnavailableException, host: ArgumentsHost) {
     const ctx = host.switchToHttp();

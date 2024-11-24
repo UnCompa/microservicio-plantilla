@@ -4,7 +4,7 @@ import { PrismaService } from './prisma.service';
 
 @Injectable()
 export class PrismaHealthService {
-  constructor(private prisma: PrismaService) { }
+  constructor(private prisma: PrismaService) {}
 
   async isDatabaseHealthy(): Promise<HealthIndicatorResult> {
     try {
