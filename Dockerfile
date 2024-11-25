@@ -25,7 +25,7 @@ COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 
 # Instalar el NestJS CLI solo para la compilación
-RUN npm install @nestjs/cli --production
+RUN npm install @nestjs/cli
 
 # Compilar la aplicación NestJS
 RUN npm run build
